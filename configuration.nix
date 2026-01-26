@@ -6,18 +6,18 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [ 
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      <home-manager/nixos>
     ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use latest kernel.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  networking.hostName = "jenkonix-1"; # Define your hostname.
+  boot.initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device = "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
+  networking.hostName = "jenkonix-2"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -26,6 +26,29 @@
 
   # Enable networking
   networking.networkmanager.enable = true;
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        # Shows battery charge of connected devices on supported
+        # Bluetooth adapters. Defaults to 'false'.
+        Experimental = true;
+        # When enabled other devices can connect faster to us, however
+        # the tradeoff is increased power consumption. Defaults to
+        # 'false'.
+        FastConnectable = true;
+      };
+      Policy = {
+        # Enable all controllers when they are found. This includes
+        # adapters present on start as well as adapters that are plugged
+        # in later on. Defaults to 'true'.
+        AutoEnable = true;
+      };
+    };
+  };
+  services.blueman.enable = true;
 
   # Set your time zone.
   time.timeZone = "Europe/London";
@@ -46,14 +69,8 @@
   };
 
   # Enable the X11 windowing system.
+  # You can disable this if you're only using the Wayland session.
   services.xserver.enable = true;
-
-  # Enable proprietary NVIDIA drivers
-  #services.xserver.videoDrivers = [ "nvidia" ];
-
-  # Enable the GNOME Desktop Environment.
-  #services.xserver.displayManager.gdm.enable = true;
-  #services.xserver.desktopManager.gnome.enable = true;
 
   # Enable the KDE Desktop Environment
   services = {
@@ -92,28 +109,29 @@
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
+    services.fprintd.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.ieuan = {
     isNormalUser = true;
     description = "Ieuan";
     extraGroups = [ "networkmanager" "wheel" ];
+    shell = pkgs.zsh;
     packages = with pkgs; [
+            kdePackages.kate
     #  thunderbird
     ];
   };
 
   # Install firefox.
   programs.firefox.enable = true;
-
   programs._1password.enable = true;
   programs._1password-gui = {
     enable = true;
-    # Certain features, including CLI integration and system authentication support,
-    # require enabling PolKit integration on some desktop environments (e.g. Plasma).
     polkitPolicyOwners = [ "ieuan" ];
   };
 
+  programs.zsh.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -123,13 +141,19 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
-    pkgs.ghostty
-    pkgs.vscodium
-    pkgs.signal-desktop
-    spotify
+  pkgs.ghostty
+  pkgs.helix
+  pkgs.vscodium
+  pkgs.signal-desktop
+  pkgs.gimp
+  pkgs.libreoffice
+  pkgs.usbutils
+  pkgs.uv
+  pkgs.python314
+  spotify
 
       # KDE
-    kdePackages.discover # Optional: Install if you use Flatpak or fwupd firmware update sevice
+  #kdePackages.discover # Optional: Install if you use Flatpak or fwupd firmware update sevice
     kdePackages.kcalc # Calculator
     kdePackages.kcharselect # Tool to select and copy special characters from all installed fonts
     kdePackages.kclock # Clock app
@@ -165,6 +189,7 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+    networking.nftables.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -172,7 +197,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "25.05"; # Did you read the comment?
+  system.stateVersion = "25.11"; # Did you read the comment?
   
   nix.gc = {
     automatic = true;
@@ -183,9 +208,4 @@
   system.autoUpgrade = {
     enable = true;
   };
-  
-  environment.variables = {
-    GSK_RENDERER = "opengl";
-  };  
-
 }
