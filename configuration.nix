@@ -10,6 +10,7 @@
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
       <home-manager/nixos>
+      <nixos-hardware/dell/xps/13-9310>
     ];
 
   # Bootloader.
@@ -109,7 +110,9 @@
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
-    services.fprintd.enable = true;
+  #services.fprintd.enable = true;
+  #services.fprintd.tod.driver = pkgs.libfprint-2-tod1-goodix-550a #
+  #pkgs.libfprint-2-tod1-goodix; # Goodix driver module
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.ieuan = {
@@ -118,12 +121,13 @@
     extraGroups = [ "networkmanager" "wheel" ];
     shell = pkgs.zsh;
     packages = with pkgs; [
-            kdePackages.kate
+      kdePackages.kate
     #  thunderbird
     ];
   };
 
-  # Install firefox.
+  services.tailscale.enable = true;
+
   programs.firefox.enable = true;
   programs._1password.enable = true;
   programs._1password-gui = {
@@ -141,6 +145,7 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
+  pkgs.cheese
   pkgs.ghostty
   pkgs.helix
   pkgs.vscodium
@@ -152,23 +157,23 @@
   pkgs.python314
   spotify
 
-      # KDE
+    # KDE
   #kdePackages.discover # Optional: Install if you use Flatpak or fwupd firmware update sevice
-    kdePackages.kcalc # Calculator
-    kdePackages.kcharselect # Tool to select and copy special characters from all installed fonts
-    kdePackages.kclock # Clock app
-    kdePackages.kcolorchooser # A small utility to select a color
-    kdePackages.kolourpaint # Easy-to-use paint program
-    kdePackages.ksystemlog # KDE SystemLog Application
-    kdePackages.sddm-kcm # Configuration module for SDDM
-    kdiff3 # Compares and merges 2 or 3 files or directories
-    kdePackages.isoimagewriter # Optional: Program to write hybrid ISO files onto USB disks
-    kdePackages.partitionmanager # Optional: Manage the disk devices, partitions and file systems on your computer
-    # Non-KDE graphical packages
-    hardinfo2 # System information and benchmarks for Linux systems
-    vlc # Cross-platform media player and streaming server
-    wayland-utils # Wayland utilities
-    wl-clipboard # Command-line copy/paste utilities for Wayland
+  kdePackages.kcalc # Calculator
+  kdePackages.kcharselect # Tool to select and copy special characters from all installed fonts
+  kdePackages.kclock # Clock app
+  kdePackages.kcolorchooser # A small utility to select a color
+  kdePackages.kolourpaint # Easy-to-use paint program
+  kdePackages.ksystemlog # KDE SystemLog Application
+  kdePackages.sddm-kcm # Configuration module for SDDM
+  kdiff3 # Compares and merges 2 or 3 files or directories
+  kdePackages.isoimagewriter # Optional: Program to write hybrid ISO files onto USB disks
+  kdePackages.partitionmanager # Optional: Manage the disk devices, partitions and file systems on your computer
+  # Non-KDE graphical packages
+  hardinfo2 # System information and benchmarks for Linux systems
+  vlc # Cross-platform media player and streaming server
+  wayland-utils # Wayland utilities
+  wl-clipboard # Command-line copy/paste utilities for Wayland
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -184,12 +189,22 @@
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
 
+  programs.ssh = {
+    startAgent = true;
+    enableAskPassword = true;
+  };
+
+  environment.variables = {
+    SSH_ASKPASS_REQUIRE = "prefer";
+  };
+
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
-    networking.nftables.enable = true;
+  networking.nftables.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
@@ -198,7 +213,7 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.11"; # Did you read the comment?
-  
+
   nix.gc = {
     automatic = true;
     dates = "weekly";
