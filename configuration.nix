@@ -152,9 +152,12 @@
   pkgs.signal-desktop
   pkgs.gimp
   pkgs.libreoffice
+  pkgs.mise
   pkgs.usbutils
   pkgs.uv
   pkgs.python314
+  pkgs.diceware
+  mozillavpn
   spotify
 
     # KDE
@@ -214,6 +217,7 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "25.11"; # Did you read the comment?
 
+  nix.optimise.automatic = true;
   nix.gc = {
     automatic = true;
     dates = "weekly";
