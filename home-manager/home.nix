@@ -6,6 +6,10 @@
   home.username = "ieuan";
   home.homeDirectory = "/home/ieuan";
 
+  home.shellAliases = {
+    code = "codium";
+  }
+
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -45,6 +49,10 @@
 
   programs.git = {
     enable = true;
+    signing = {
+      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3qvLJCEGwvZLWl5dUXI/WAV9a7DDTYa+NlDA9Yjeo hi@ieuan.net";
+      signByDefault = true;
+    };
     settings = {
       user = {
         name = "Ieuan Jenkins";
@@ -56,9 +64,6 @@
       core = {
         excludesfile = "/home/ieuan/.gitignore";
         editor = "vim";
-      };
-      commit = {
-        gpgsign = false;
       };
       github = {
         user = "dijitali";
@@ -72,8 +77,11 @@
       init = {
         defaultBranch = "main";
       };
+      commit = {
+        gpgsign = true;
+      };
       tag = {
-        gpgSign = false;
+        gpgSign = true;
       };
     };
   };
