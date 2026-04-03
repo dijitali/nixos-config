@@ -145,19 +145,22 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
+  mozillavpn
   pkgs.cheese
+  pkgs.comaps
+  pkgs.diceware
   pkgs.ghostty
-  pkgs.helix
-  pkgs.vscodium
-  pkgs.signal-desktop
   pkgs.gimp
+  pkgs.helix
   pkgs.libreoffice
   pkgs.mise
+  pkgs.openssl
+  pkgs.opentofu
+  pkgs.python314
+  pkgs.signal-desktop
   pkgs.usbutils
   pkgs.uv
-  pkgs.python314
-  pkgs.diceware
-  mozillavpn
+  pkgs.vscodium
   spotify
 
     # KDE
