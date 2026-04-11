@@ -161,6 +161,7 @@
   organicmaps
   openssl
   opentofu
+  pinentry
   python314
   signal-desktop
   usbutils
