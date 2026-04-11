@@ -146,21 +146,26 @@
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
   mozillavpn
-  pkgs.cheese
-  pkgs.comaps
-  pkgs.diceware
-  pkgs.ghostty
-  pkgs.gimp
-  pkgs.helix
-  pkgs.libreoffice
-  pkgs.mise
-  pkgs.openssl
-  pkgs.opentofu
-  pkgs.python314
-  pkgs.signal-desktop
-  pkgs.usbutils
-  pkgs.uv
-  pkgs.vscodium
+  cheese
+  chromium
+  comaps
+  diceware
+  ghostty
+  gimp
+  gnupg
+  helix
+  inkscape
+  libreoffice
+  krita
+  mise
+  organicmaps
+  openssl
+  opentofu
+  python314
+  signal-desktop
+  usbutils
+  uv
+  vscodium
   spotify
 
     # KDE
