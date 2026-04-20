@@ -28,6 +28,9 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # Enable scaner support
+  hardware.sane.enable = true;
+
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
@@ -128,14 +131,21 @@
 
   services.tailscale.enable = true;
 
+  # printer discovery
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+
   programs.firefox.enable = true;
   programs._1password.enable = true;
   programs._1password-gui = {
     enable = true;
     polkitPolicyOwners = [ "ieuan" ];
   };
-
   programs.zsh.enable = true;
+  programs.gnupg.agent.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -150,6 +160,7 @@
   chromium
   comaps
   diceware
+  dig
   ghostty
   gimp
   gnupg
@@ -161,7 +172,7 @@
   organicmaps
   openssl
   opentofu
-  pinentry
+  powershell
   python314
   signal-desktop
   usbutils
@@ -187,6 +198,10 @@
   wayland-utils # Wayland utilities
   wl-clipboard # Command-line copy/paste utilities for Wayland
   ];
+
+  nixpkgs.config.packageOverrides = pkgs: {
+    xsaneGimp = pkgs.xsane.override { gimpSupport = true; };
+  };
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
