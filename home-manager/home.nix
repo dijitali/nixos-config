@@ -6,10 +6,6 @@
   home.username = "ieuan";
   home.homeDirectory = "/home/ieuan";
 
-  home.shellAliases = {
-    code = "codium";
-  }
-
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -39,6 +35,12 @@
     #   echo "Hello, ${config.home.username}!"
     # '')
   ];
+
+  # enable flakes
+  nix = {
+    package = pkgs.nix;
+    settings.experimental-features = [ "nix-command" "flakes" ];
+  };
 
   xdg.autostart.entries.signal-desktop = {
     name = "Signal Desktop";
@@ -90,6 +92,9 @@
     enable = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+    shellAliases = {
+      code = "codium";
+    }
     history = {
       size = 10000;
     };
