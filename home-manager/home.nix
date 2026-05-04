@@ -39,7 +39,10 @@
   # enable flakes
   nix = {
     package = pkgs.nix;
-    settings.experimental-features = [ "nix-command" "flakes" ];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
   };
 
   xdg.autostart.entries.signal-desktop = {
@@ -48,11 +51,10 @@
     type = "Application";
   };
 
-
   programs.git = {
     enable = true;
     signing = {
-      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3qvLJCEGwvZLWl5dUXI/WAV9a7DDTYa+NlDA9Yjeo hi@ieuan.net";
+      key = "~/.ssh/id_ed25519.pub";
       signByDefault = true;
     };
     settings = {
@@ -79,6 +81,9 @@
       init = {
         defaultBranch = "main";
       };
+      gpg = {
+        format = ssh;
+      };
       commit = {
         gpgsign = true;
       };
@@ -94,7 +99,7 @@
     syntaxHighlighting.enable = true;
     shellAliases = {
       code = "codium";
-    }
+    };
     history = {
       size = 10000;
     };
