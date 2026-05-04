@@ -82,7 +82,7 @@
         defaultBranch = "main";
       };
       gpg = {
-        format = ssh;
+        format = "ssh";
       };
       commit = {
         gpgsign = true;
