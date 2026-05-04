@@ -155,7 +155,6 @@
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
-  mozillavpn
   cheese
   chromium
   comaps
@@ -166,19 +165,22 @@
   gnupg
   helix
   inkscape
-  libreoffice
   krita
+  libreoffice
+  macchina
   mise
-  organicmaps
+  mozillavpn
   openssl
   opentofu
+  organicmaps
   powershell
   python314
   signal-desktop
+  spotify
   usbutils
   uv
   vscodium
-  spotify
+  yubikey-manager
 
     # KDE
   #kdePackages.discover # Optional: Install if you use Flatpak or fwupd firmware update sevice
