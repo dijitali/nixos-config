@@ -18,6 +18,26 @@
 
   boot.initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
     "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
+
+  boot.kernel.sysctl = {
+    # Restrict kernel pointer access
+    "kernel.kptr_restrict" = 2;
+    # Restrict dmesg to root
+    "kernel.dmesg_restrict" = 1;
+    # Disable SysRq
+    "kernel.sysrq" = 0;
+    # Protect symlinks/hardlinks
+    "fs.protected_symlinks" = 1;
+    "fs.protected_hardlinks" = 1;
+    # Disable IP forwarding (not a router)
+    "net.ipv4.ip_forward" = 0;
+    # SYN flood protection
+    "net.ipv4.tcp_syncookies" = 1;
+    # Ignore ICMP redirects
+    "net.ipv4.conf.all.accept_redirects" = 0;
+    "net.ipv6.conf.all.accept_redirects" = 0;
+  };
+
   networking.hostName = "jenkonix-2"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
@@ -82,6 +102,8 @@
     displayManager.sddm.enable = true;
     displayManager.sddm.wayland.enable = true;
   };
+
+  security.sudo.wheelNeedsPassword = true; # this is the default, confirm it's not overridden
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -160,9 +182,11 @@
     #  wget
     cheese
     chromium
+    claude-code
     comaps
     diceware
     dig
+    fzf
     ghostty
     gimp
     gnupg
@@ -171,7 +195,6 @@
     krita
     libreoffice
     macchina
-    mise
     mozillavpn
     nixfmt
     openssl
@@ -237,6 +260,7 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  networking.firewall.enable = true;
   networking.nftables.enable = true;
 
   # This value determines the NixOS release from which the default
