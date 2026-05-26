@@ -208,6 +208,7 @@
     libreoffice
     macchina
     mozillavpn
+    nixd
     nixfmt
     openssl
     opentofu
