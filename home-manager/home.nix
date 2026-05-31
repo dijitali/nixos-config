@@ -113,6 +113,25 @@
       enable = true;
       enableZshIntegration = true;
     };
+
+    ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      settings = {
+        "*" = {
+          AddKeysToAgent = "yes";
+          ServerAliveInterval = 60;
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/sockets/%r@%h:%p";
+          ControlPersist = "10m";
+        };
+        "github" = {
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = "~/.ssh/id_ed25519";
+        };
+      };
+    };
   };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -121,6 +140,7 @@
     ".ssh/allowed_signers".text = ''
       hi@ieuan.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3qvLJCEGwvZLWl5dUXI/WAV9a7DDTYa+NlDA9Yjeo
     '';
+    ".ssh/sockets/.keep".text = "";
   };
 
   # Home Manager can also manage your environment variables through
