@@ -23,12 +23,13 @@
     (pkgs.writeShellScriptBin "git-ssh-signing-key" ''
       serials=$(${pkgs.yubikey-manager}/bin/ykman list --serials 2>/dev/null)
       if echo "$serials" | grep -qx 25305658; then
-        cat ${config.home.homeDirectory}/.ssh/id_ed25519_sk_yka.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_yka.pub
       elif echo "$serials" | grep -qx 25440569; then
-        cat ${config.home.homeDirectory}/.ssh/id_ed25519_sk_ykc.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_ykc.pub
       else
-        cat ${config.home.homeDirectory}/.ssh/id_ed25519.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519.pub
       fi
+      echo "key::$(cat "$key")"
     '')
   ];
 
