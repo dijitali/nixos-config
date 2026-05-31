@@ -20,22 +20,16 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    # # Adds the 'hello' command to your environment. It prints a friendly
-    # # "Hello, world!" when run.
-    # pkgs.hello
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
-
-    # # You can also create simple shell scripts directly inside your
-    # # configuration. For example, this adds a command 'my-hello' to your
-    # # environment:
-    # (pkgs.writeShellScriptBin "my-hello" ''
-    #   echo "Hello, ${config.home.username}!"
-    # '')
+    (pkgs.writeShellScriptBin "git-ssh-signing-key" ''
+      serials=$(${pkgs.yubikey-manager}/bin/ykman list --serials 2>/dev/null)
+      if echo "$serials" | grep -qx 25305658; then
+        cat ${config.home.homeDirectory}/.ssh/id_ed25519_sk_yka.pub
+      elif echo "$serials" | grep -qx 25440569; then
+        cat ${config.home.homeDirectory}/.ssh/id_ed25519_sk_ykc.pub
+      else
+        cat ${config.home.homeDirectory}/.ssh/id_ed25519.pub
+      fi
+    '')
   ];
 
   # enable flakes
@@ -60,7 +54,6 @@
       enable = true;
       signing = {
         format = "ssh";
-        key = "~/.ssh/id_ed25519.pub";
         signByDefault = true;
       };
       settings = {
@@ -88,6 +81,7 @@
           defaultBranch = "main";
         };
         gpg.ssh.allowedSignersFile = "${config.home.homeDirectory}/.ssh/allowed_signers";
+        gpg.ssh.defaultKeyCommand = "git-ssh-signing-key";
       };
     };
 
@@ -124,11 +118,18 @@
           ControlMaster = "auto";
           ControlPath = "~/.ssh/sockets/%r@%h:%p";
           ControlPersist = "10m";
+          IdentitiesOnly = "yes";
+          IdentityFile = "~/.ssh/id_ed25519";
+        };
+        "Match exec \"ykman list --serials 2>/dev/null | grep -qx 25305658\"" = {
+          IdentityFile = "~/.ssh/id_ed25519_sk_yka";
+        };
+        "Match exec \"ykman list --serials 2>/dev/null | grep -qx 25440569\"" = {
+          IdentityFile = "~/.ssh/id_ed25519_sk_ykc";
         };
         "github" = {
           HostName = "github.com";
           User = "git";
-          IdentityFile = "~/.ssh/id_ed25519";
         };
       };
     };
@@ -138,6 +139,8 @@
   # plain files is through 'home.file'.
   home.file = {
     ".ssh/allowed_signers".text = ''
+      hi@ieuan.net sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEo+YmeZF08PM0Ojvt6hIUgkaxzHrdc7GUZS+UpEuoxvAAAABHNzaDo=
+      hi@ieuan.net sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIDlEPzSf59qfPwZRF5r5RzZ33DJR69U9xMyvu3yJrEcFAAAABHNzaDo=
       hi@ieuan.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3qvLJCEGwvZLWl5dUXI/WAV9a7DDTYa+NlDA9Yjeo
     '';
     ".ssh/sockets/.keep".text = "";
