@@ -172,6 +172,10 @@
     ];
   };
 
+  home-manager.useGlobalPkgs = true;
+  home-manager.useUserPackages = true;
+  home-manager.users.ieuan = import /home/ieuan/repos/nixos-config/home-manager/home.nix;
+
   # ---------------------------------------------------------------------------
   # Programs & Packages
   # ---------------------------------------------------------------------------
