@@ -3,8 +3,10 @@
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
-  home.username = "ieuan";
-  home.homeDirectory = "/home/ieuan";
+  home = {
+    username = "ieuan";
+    homeDirectory = "/home/ieuan";
+  };
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -50,51 +52,66 @@
     type = "Application";
   };
 
-  programs.git = {
-    enable = true;
-    signing = {
-      format = "ssh";
-      key = "~/.ssh/id_ed25519.pub";
-      signByDefault = true;
-    };
-    settings = {
-      user = {
-        name = "Ieuan Jenkins";
-        email = "hi@ieuan.net";
-      };
-      credential = {
-        helper = "cache";
-      };
-      core = {
-        excludesfile = "/home/ieuan/.gitignore";
-        editor = "vim";
-      };
-      github = {
-        user = "dijitali";
-      };
-      alias = {
-        prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
-      };
-      color = {
-        ui = true;
-      };
-      init = {
-        defaultBranch = "main";
-      };
-      gpg.ssh.allowedSignersFile = "${config.home.homeDirectory}/.ssh/allowed_signers";
-    };
-  };
+  programs = {
+    # Let Home Manager install and manage itself.
+    home-manager.enable = true;
 
-  programs.zsh = {
-    enable = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    shellAliases = {
-      code = "codium";
-      cz = "uv tool run --from commitizen cz";
+    git = {
+      enable = true;
+      signing = {
+        format = "ssh";
+        key = "~/.ssh/id_ed25519.pub";
+        signByDefault = true;
+      };
+      settings = {
+        user = {
+          name = "Ieuan Jenkins";
+          email = "hi@ieuan.net";
+        };
+        credential = {
+          helper = "cache";
+        };
+        core = {
+          excludesfile = "/home/ieuan/.gitignore";
+          editor = "vim";
+        };
+        github = {
+          user = "dijitali";
+        };
+        alias = {
+          prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
+        };
+        color = {
+          ui = true;
+        };
+        init = {
+          defaultBranch = "main";
+        };
+        gpg.ssh.allowedSignersFile = "${config.home.homeDirectory}/.ssh/allowed_signers";
+      };
     };
-    history = {
-      size = 10000;
+
+    zsh = {
+      enable = true;
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+      shellAliases = {
+        code = "codium";
+        cz = "uv tool run --from commitizen cz";
+      };
+      history = {
+        expireDuplicatesFirst = true;
+        extended = true;
+        ignoreAllDups = true;
+        ignoreSpace = true;
+        share = true;
+        size = 100000;
+      };
+    };
+
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
     };
   };
 
@@ -128,6 +145,4 @@
     UV_PYTHON = "/run/current-system/sw/bin/python3.14";
   };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
 }

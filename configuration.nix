@@ -15,47 +15,54 @@
   # Boot & Kernel
   # ---------------------------------------------------------------------------
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
 
-  boot.initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
-    "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
+    initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
+      "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
 
-  boot.kernel.sysctl = {
-    # Restrict kernel pointer access
-    "kernel.kptr_restrict" = 2;
-    # Restrict dmesg to root
-    "kernel.dmesg_restrict" = 1;
-    # Disable SysRq
-    "kernel.sysrq" = 0;
-    # Protect symlinks/hardlinks
-    "fs.protected_symlinks" = 1;
-    "fs.protected_hardlinks" = 1;
-    # Disable IP forwarding (not a router)
-    "net.ipv4.ip_forward" = 0;
-    # SYN flood protection
-    "net.ipv4.tcp_syncookies" = 1;
-    # Ignore ICMP redirects
-    "net.ipv4.conf.all.accept_redirects" = 0;
-    "net.ipv6.conf.all.accept_redirects" = 0;
+    kernel.sysctl = {
+      # Restrict kernel pointer access
+      "kernel.kptr_restrict" = 2;
+      # Restrict dmesg to root
+      "kernel.dmesg_restrict" = 1;
+      # Disable SysRq
+      "kernel.sysrq" = 0;
+      # Protect symlinks/hardlinks
+      "fs.protected_symlinks" = 1;
+      "fs.protected_hardlinks" = 1;
+      # Disable IP forwarding (not a router)
+      "net.ipv4.ip_forward" = 0;
+      # SYN flood protection
+      "net.ipv4.tcp_syncookies" = 1;
+      # Ignore ICMP redirects
+      "net.ipv4.conf.all.accept_redirects" = 0;
+      "net.ipv6.conf.all.accept_redirects" = 0;
+    };
   };
 
   # ---------------------------------------------------------------------------
   # Networking
   # ---------------------------------------------------------------------------
 
-  networking.hostName = "jenkonix-2";
-  networking.networkmanager.enable = true;
-  networking.firewall.enable = true;
-  networking.nftables.enable = true;
+  networking = {
+    hostName = "jenkonix-2";
+    networkmanager.enable = true;
+    firewall.enable = true;
+    nftables.enable = true;
+  };
 
-  services.tailscale.enable = true;
-
-  # Printer/service discovery
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
+  services = {
+    tailscale.enable = true;
+    # Printer/service discovery
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
   };
 
   # ---------------------------------------------------------------------------
@@ -172,22 +179,25 @@
     ];
   };
 
-  home-manager.useGlobalPkgs = true;
-  home-manager.useUserPackages = true;
-  home-manager.users.ieuan = import /home/ieuan/repos/nixos-config/home-manager/home.nix;
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+    users.ieuan = import /home/ieuan/repos/nixos-config/home-manager/home.nix;
+  };
 
   # ---------------------------------------------------------------------------
   # Programs & Packages
   # ---------------------------------------------------------------------------
 
-  programs.firefox.enable = true;
-  programs.zsh.enable = true;
-  programs.gnupg.agent.enable = true;
-
-  programs._1password.enable = true;
-  programs._1password-gui = {
-    enable = true;
-    polkitPolicyOwners = [ "ieuan" ];
+  programs = {
+    firefox.enable = true;
+    zsh.enable = true;
+    gnupg.agent.enable = true;
+    _1password.enable = true;
+    _1password-gui = {
+      enable = true;
+      polkitPolicyOwners = [ "ieuan" ];
+    };
   };
 
   nixpkgs.config.allowUnfree = true;
