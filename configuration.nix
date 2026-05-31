@@ -214,6 +214,7 @@
     opentofu
     organicmaps
     powershell
+    pre-commit
     python314
     signal-desktop
     spotify
