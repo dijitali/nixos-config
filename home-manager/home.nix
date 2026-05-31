@@ -38,7 +38,6 @@
 
   # enable flakes
   nix = {
-    package = pkgs.nix;
     settings.experimental-features = [
       "nix-command"
       "flakes"
@@ -54,6 +53,7 @@
   programs.git = {
     enable = true;
     signing = {
+      format = "ssh";
       key = "~/.ssh/id_ed25519.pub";
       signByDefault = true;
     };
@@ -81,15 +81,7 @@
       init = {
         defaultBranch = "main";
       };
-      gpg = {
-        format = "ssh";
-      };
-      commit = {
-        gpgsign = true;
-      };
-      tag = {
-        gpgSign = true;
-      };
+      gpg.ssh.allowedSignersFile = "${config.home.homeDirectory}/.ssh/allowed_signers";
     };
   };
 
@@ -99,6 +91,7 @@
     syntaxHighlighting.enable = true;
     shellAliases = {
       code = "codium";
+      cz = "uv tool run --from commitizen cz";
     };
     history = {
       size = 10000;
@@ -108,16 +101,9 @@
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {
-    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
-    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy.
-    # ".screenrc".source = dotfiles/screenrc;
-
-    # # You can also set the file content immediately.
-    # ".gradle/gradle.properties".text = ''
-    #   org.gradle.console=verbose
-    #   org.gradle.daemon.idletimeout=3600000
-    # '';
+    ".ssh/allowed_signers".text = ''
+      hi@ieuan.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3qvLJCEGwvZLWl5dUXI/WAV9a7DDTYa+NlDA9Yjeo
+    '';
   };
 
   # Home Manager can also manage your environment variables through
