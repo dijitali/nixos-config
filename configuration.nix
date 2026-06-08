@@ -213,6 +213,7 @@
     diceware
     dig
     fzf
+    gh
     ghostty
     gimp
     gnupg

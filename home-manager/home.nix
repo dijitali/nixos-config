@@ -86,6 +86,12 @@
       };
     };
 
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+      silent = true;
+    };
+
     zsh = {
       enable = true;
       autosuggestion.enable = true;
