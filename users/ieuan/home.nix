@@ -33,14 +33,6 @@
     '')
   ];
 
-  # enable flakes
-  nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
   xdg.autostart.entries.signal-desktop = {
     name = "Signal Desktop";
     exec = "/run/current-system/sw/bin/signal-desktop";
@@ -174,5 +166,4 @@
     UV_PYTHON_DOWNLOADS = "never";
     UV_PYTHON = "/run/current-system/sw/bin/python3.14";
   };
-
 }
