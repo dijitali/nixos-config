@@ -127,7 +127,10 @@
   };
   services.blueman.enable = true;
 
-  hardware.sane.enable = true;
+  hardware.sane = {
+    enable = true;
+    extraBackends = [ pkgs.sane-airscan ];
+  };
 
   # ---------------------------------------------------------------------------
   # Locale & Time
@@ -217,6 +220,8 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "scanner"
+      "lp"
     ];
     shell = pkgs.zsh;
     packages = with pkgs; [
@@ -278,6 +283,7 @@
     python314
     signal-desktop
     spotify
+    tesseract
     usbutils
     uv
     vscodium
