@@ -275,6 +275,7 @@
     python314
     signal-desktop
     spotify
+    tesseract
     usbutils
     uv
     vscodium
