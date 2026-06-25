@@ -18,11 +18,22 @@
   boot = {
     loader = {
       systemd-boot.enable = true;
+      # Disable the boot-menu editor so an attacker at the console can't append
+      # kernel params (e.g. init=/bin/sh) to get a root shell.
+      systemd-boot.editor = false;
       efi.canTouchEfiVariables = true;
     };
 
     initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
       "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
+
+    # Memory-hardening allocator options. Small runtime cost, real
+    # exploit-mitigation value (zero-on-alloc/free, freelist randomisation).
+    kernelParams = [
+      "init_on_alloc=1"
+      "init_on_free=1"
+      "page_alloc.shuffle=1"
+    ];
 
     kernel.sysctl = {
       # Restrict kernel pointer access
@@ -41,6 +52,28 @@
       # Ignore ICMP redirects
       "net.ipv4.conf.all.accept_redirects" = 0;
       "net.ipv6.conf.all.accept_redirects" = 0;
+      "net.ipv4.conf.default.accept_redirects" = 0;
+      "net.ipv6.conf.default.accept_redirects" = 0;
+      # Never send ICMP redirects (not a router)
+      "net.ipv4.conf.all.send_redirects" = 0;
+      "net.ipv4.conf.default.send_redirects" = 0;
+      # Drop source-routed packets
+      "net.ipv4.conf.all.accept_source_route" = 0;
+      "net.ipv6.conf.all.accept_source_route" = 0;
+      # Reverse-path filtering (drop spoofed/asymmetric traffic)
+      "net.ipv4.conf.all.rp_filter" = 1;
+      "net.ipv4.conf.default.rp_filter" = 1;
+      # Only allow a process to ptrace its own descendants
+      "kernel.yama.ptrace_scope" = 1;
+      # Lock down unprivileged BPF (common local-privesc surface)
+      "kernel.unprivileged_bpf_disabled" = 1;
+      "net.core.bpf_jit_harden" = 2;
+      # Extend symlink-style protections to FIFOs/regular files in sticky dirs
+      "fs.protected_fifos" = 2;
+      "fs.protected_regular" = 2;
+      # Block kexec-based kernel replacement and restrict perf subsystem
+      "kernel.kexec_load_disabled" = 1;
+      "kernel.perf_event_paranoid" = 3;
     };
   };
 
@@ -57,6 +90,9 @@
 
   services = {
     tailscale.enable = true;
+    # Firmware updates via LVFS (also the delivery path for the 2023 Secure
+    # Boot certificate/dbx updates).
+    fwupd.enable = true;
     # Printer/service discovery
     avahi = {
       enable = true;
@@ -153,6 +189,15 @@
   # ---------------------------------------------------------------------------
 
   security.sudo.wheelNeedsPassword = true;
+  # Only members of wheel may run the sudo binaries at all.
+  security.sudo.execWheelOnly = true;
+
+  # Mandatory access control: load AppArmor profiles and stop unconfined
+  # processes that should have been confined.
+  security.apparmor = {
+    enable = true;
+    killUnconfinedConfinables = true;
+  };
 
   services.pcscd.enable = true;
 
@@ -266,6 +311,9 @@
   # ---------------------------------------------------------------------------
   # Nix & System
   # ---------------------------------------------------------------------------
+
+  # Restrict who may talk to the Nix daemon (build/substitute) to wheel.
+  nix.settings.allowed-users = [ "@wheel" ];
 
   nix.optimise.automatic = true;
   nix.gc = {
