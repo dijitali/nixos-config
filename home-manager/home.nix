@@ -153,6 +153,56 @@
     ".ssh/sockets/.keep".text = "";
   };
 
+  # Terminal navigation keybindings.
+  #
+  # zsh runs in its default emacs keymap, which already binds:
+  #   Ctrl-A / Ctrl-E  -> beginning / end of line
+  #   ESC-b  / ESC-f   -> back / forward one word
+  # We just teach each terminal to emit those byte sequences for
+  # Ctrl + Left/Right (line) and Alt + Left/Right (word).
+  xdg.configFile = {
+    # Ghostty reads `keybind = <trigger>=<action>` lines. The `text:` action
+    # sends raw bytes (\x01 = Ctrl-A, \x05 = Ctrl-E); `esc:` prepends ESC.
+    "ghostty/config".text = ''
+      keybind = ctrl+left=text:\x01
+      keybind = ctrl+right=text:\x05
+      keybind = alt+left=esc:b
+      keybind = alt+right=esc:f
+    '';
+
+    # VSCodium integrated terminal: intercept the combos while the terminal is
+    # focused and forward the same sequences via sendSequence. \u0001 = Ctrl-A,
+    # \u0005 = Ctrl-E, \u001bb / \u001bf = ESC-b / ESC-f.
+    "VSCodium/User/keybindings.json".text = ''
+      [
+        {
+          "key": "ctrl+left",
+          "command": "workbench.action.terminal.sendSequence",
+          "args": { "text": "\u0001" },
+          "when": "terminalFocus"
+        },
+        {
+          "key": "ctrl+right",
+          "command": "workbench.action.terminal.sendSequence",
+          "args": { "text": "\u0005" },
+          "when": "terminalFocus"
+        },
+        {
+          "key": "alt+left",
+          "command": "workbench.action.terminal.sendSequence",
+          "args": { "text": "\u001bb" },
+          "when": "terminalFocus"
+        },
+        {
+          "key": "alt+right",
+          "command": "workbench.action.terminal.sendSequence",
+          "args": { "text": "\u001bf" },
+          "when": "terminalFocus"
+        }
+      ]
+    '';
+  };
+
   # Home Manager can also manage your environment variables through
   # 'home.sessionVariables'. These will be explicitly sourced when using a
   # shell provided by Home Manager. If you don't want to manage your shell
