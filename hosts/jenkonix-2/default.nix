@@ -29,9 +29,9 @@
 
   networking.hostName = "jenkonix-2";
 
-  # LUKS root device for this machine (host-specific UUID).
-  boot.initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
-    "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
+  # NOTE: the LUKS root device is defined in ./hardware-configuration.nix,
+  # which nixos-generate-config keeps in sync with the actual disk UUID. Do
+  # not duplicate it here.
 
   # This value determines the NixOS release from which the default settings
   # for stateful data were taken. Do not change without reading the docs.
