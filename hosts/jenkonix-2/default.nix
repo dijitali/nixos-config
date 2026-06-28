@@ -29,9 +29,15 @@
 
   networking.hostName = "jenkonix-2";
 
-  # NOTE: the LUKS root device is defined in ./hardware-configuration.nix,
-  # which nixos-generate-config keeps in sync with the actual disk UUID. Do
-  # not duplicate it here.
+  # The root LUKS device (luks-c54ac17e...) is declared in
+  # ./hardware-configuration.nix. Encrypted swap lives on a second LUKS
+  # partition: nixos-generate-config emits the swapDevices entry pointing at
+  # /dev/mapper/luks-58f3676b... but NOT the unlock entry for it, so it must be
+  # declared here or the swap mapper never opens and the swap unit fails at
+  # boot. (If a future hardware-configuration.nix regeneration starts emitting
+  # this same entry, remove it here to avoid a duplicate definition.)
+  boot.initrd.luks.devices."luks-58f3676b-64b0-4165-88f1-366ef142fbcf".device =
+    "/dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf";
 
   # This value determines the NixOS release from which the default settings
   # for stateful data were taken. Do not change without reading the docs.
