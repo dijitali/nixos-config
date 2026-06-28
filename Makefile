@@ -2,7 +2,7 @@
 # Override the target host with `make switch NIXNAME=othermachine`.
 NIXNAME ?= jenkonix-2
 
-.PHONY: switch test boot update check fmt
+.PHONY: switch test boot droid update check fmt
 
 # Build and activate, making it the default boot entry.
 switch:
@@ -16,7 +16,11 @@ test:
 boot:
 	sudo nixos-rebuild boot --flake ".#$(NIXNAME)"
 
-# Bump flake inputs (nixpkgs, home-manager, nixos-hardware) in flake.lock.
+# Activate the Nix-on-Droid environment (run this on the Android device).
+droid:
+	nix-on-droid switch --flake ".#default"
+
+# Bump flake inputs (nixpkgs, home-manager, nixos-hardware, nix-on-droid) in flake.lock.
 update:
 	nix flake update
 

@@ -11,9 +11,12 @@ Flake-based NixOS + Home Manager configuration.
 ├── lib/
 │   └── mkSystem.nix          # Helper that builds a host from a name + user
 ├── hosts/
-│   └── jenkonix-2/
-│       ├── default.nix       # Host wiring: hostname, LUKS, imports, stateVersion
-│       └── hardware-configuration.nix  # Machine-generated (see below)
+│   ├── jenkonix-2/
+│   │   ├── default.nix       # Host wiring: hostname, LUKS, imports, stateVersion
+│   │   └── hardware-configuration.nix  # Machine-generated (see below)
+│   └── droid/                # Android/Termux (Nix-on-Droid)
+│       ├── default.nix       # environment.packages, shell, flakes
+│       └── home.nix          # Lighter Home Manager config for mobile
 ├── modules/                  # Reusable system modules
 │   ├── boot.nix              # Boot loader + kernel hardening
 │   ├── networking.nix        # NetworkManager, firewall, Tailscale, Avahi
@@ -76,6 +79,26 @@ make switch
 Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
 GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
+
+## Android / Termux (Nix-on-Droid)
+
+The flake also exposes `nixOnDroidConfigurations.default` for a phone running
+[Nix-on-Droid](https://github.com/nix-community/nix-on-droid). On the device:
+
+1. Install the Nix-on-Droid app (F-Droid) and open it once to bootstrap Nix.
+2. From a clone of this repo (or directly from GitHub), activate it:
+
+   ```sh
+   nix-on-droid switch --flake .#default
+   ```
+
+   If activation fails with store-path errors under proot, retry with
+   `--impure`.
+
+The device config lives in `hosts/droid/` and is intentionally lighter than the
+laptop: terminal tooling only, no desktop or YubiKey signing. The input tracks
+`nix-on-droid`'s `prerelease-25.11` branch (no stable `release-25.11` exists
+yet) and follows this flake's `nixpkgs`/`home-manager`.
 
 ## Rolling Back
 
