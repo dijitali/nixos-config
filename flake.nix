@@ -2,20 +2,21 @@
   description = "Ieuan's NixOS configuration";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    # Nix on Android (Termux). No stable release-25.11 branch exists yet, so
-    # track prerelease-25.11 which is built against the 25.11 line; the exact
-    # commit is pinned in flake.lock. Swap to release-25.11 once it is cut.
+    # Nix on Android (Termux). nix-on-droid has no release-26.05 branch, so
+    # track master and have it follow this flake's nixpkgs/home-manager (26.05).
+    # The exact commit is pinned in flake.lock; swap to a release-26.05 branch
+    # once one is cut.
     nix-on-droid = {
-      url = "github:nix-community/nix-on-droid/prerelease-25.11";
+      url = "github:nix-community/nix-on-droid";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
