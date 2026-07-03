@@ -33,14 +33,6 @@
     '')
   ];
 
-  # enable flakes
-  nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
   xdg.autostart.entries.signal-desktop = {
     name = "Signal Desktop";
     exec = "/run/current-system/sw/bin/signal-desktop";
@@ -117,26 +109,30 @@
 
     ssh = {
       enable = true;
+      # Opt out of Home Manager's default "*" block so the one below is the
+      # only wildcard config.
       enableDefaultConfig = false;
       settings = {
         "*" = {
-          AddKeysToAgent = "yes";
-          ServerAliveInterval = 60;
-          ControlMaster = "auto";
-          ControlPath = "~/.ssh/sockets/%r@%h:%p";
-          ControlPersist = "10m";
-          IdentitiesOnly = "yes";
-          IdentityFile = "~/.ssh/id_ed25519";
+          addKeysToAgent = "yes";
+          serverAliveInterval = 60;
+          controlMaster = "auto";
+          controlPath = "~/.ssh/sockets/%r@%h:%p";
+          controlPersist = "10m";
+          identitiesOnly = true;
+          identityFile = "~/.ssh/id_ed25519";
         };
-        "Match exec \"ykman list --serials 2>/dev/null | grep -qx 25305658\"" = {
-          IdentityFile = "~/.ssh/id_ed25519_sk_yka";
+        yubikey-a = {
+          match = ''exec "ykman list --serials 2>/dev/null | grep -qx 25305658"'';
+          identityFile = "~/.ssh/id_ed25519_sk_yka";
         };
-        "Match exec \"ykman list --serials 2>/dev/null | grep -qx 25440569\"" = {
-          IdentityFile = "~/.ssh/id_ed25519_sk_ykc";
+        yubikey-c = {
+          match = ''exec "ykman list --serials 2>/dev/null | grep -qx 25440569"'';
+          identityFile = "~/.ssh/id_ed25519_sk_ykc";
         };
-        "github" = {
-          HostName = "github.com";
-          User = "git";
+        github = {
+          hostname = "github.com";
+          user = "git";
         };
       };
     };
@@ -174,5 +170,4 @@
     UV_PYTHON_DOWNLOADS = "never";
     UV_PYTHON = "/run/current-system/sw/bin/python3.14";
   };
-
 }

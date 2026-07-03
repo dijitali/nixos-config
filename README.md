@@ -1,160 +1,122 @@
 # NixOS Configuration
 
-System-level configuration and user-specific Home Manager configuration for `jenkonix-2`.
+Flake-based NixOS + Home Manager configuration.
 
 ## Repository Structure
 
 ```
 .
-├── configuration.nix          # System configuration
-├── hardware-configuration.nix # Auto-generated hardware config (do not edit)
-└── home-manager/
-    └── home.nix               # User environment (ieuan)
+├── flake.nix                 # Inputs (nixpkgs, home-manager, nixos-hardware) + outputs
+├── flake.lock                # Pinned input versions (generated)
+├── lib/
+│   └── mkSystem.nix          # Helper that builds a host from a name + user
+├── hosts/
+│   ├── jenkonix-2/
+│   │   ├── default.nix       # Host wiring: hostname, LUKS, imports, stateVersion
+│   │   └── hardware-configuration.nix  # Machine-generated (see below)
+│   └── droid/                # Android/Termux (Nix-on-Droid)
+│       ├── default.nix       # environment.packages, shell, flakes
+│       └── home.nix          # Lighter Home Manager config for mobile
+├── modules/                  # Reusable system modules
+│   ├── boot.nix              # Boot loader + kernel hardening
+│   ├── networking.nix        # NetworkManager, firewall, Tailscale, Avahi
+│   ├── desktop.nix           # Plasma 6, SDDM, PipeWire, printing
+│   ├── hardware.nix          # Bluetooth, scanners, firmware (fwupd)
+│   ├── security.nix          # sudo, AppArmor, smartcards, SSH/GnuPG agents
+│   ├── locale.nix            # Time zone + locale
+│   ├── packages.nix          # System programs + environment.systemPackages
+│   └── nix.nix               # Nix daemon, GC, flake auto-upgrade
+├── users/
+│   └── ieuan/
+│       ├── nixos.nix         # System account
+│       └── home.nix          # Home Manager configuration
+└── Makefile                  # switch / test / boot / update / check / fmt
 ```
 
-Home Manager is integrated as a NixOS module, so `home.nix` changes are applied
-as part of a normal system rebuild — no separate `home-manager` command needed.
+Adding a new machine is a single `mkSystem` entry in `flake.nix` plus a
+directory under `hosts/`. Home Manager is wired in as a NixOS module by
+`lib/mkSystem.nix`, so `home.nix` changes apply during a normal system rebuild.
 
----
+## First-time setup / `hardware-configuration.nix`
+
+The per-machine hardware scan is **not** committed by default. Flakes only see
+files tracked by git, so after cloning on a machine you must generate it and
+add it:
+
+```sh
+sudo nixos-generate-config --show-hardware-config \
+  > hosts/jenkonix-2/hardware-configuration.nix
+git add hosts/jenkonix-2/hardware-configuration.nix
+```
 
 ## Applying Changes
 
-> Changes must be applied from `/etc/nixos/`. If editing files in this repo,
-> ensure they are synced there first (e.g. symlink or copy).
-
-### Rebuild and switch (live system)
+You no longer need to copy files into `/etc/nixos`; build directly from this
+checkout with `--flake`.
 
 ```sh
-sudo nixos-rebuild switch
+make switch    # build + activate + set as default boot entry
+make test      # activate without making it default (reverts on reboot)
+make boot      # set as default boot entry without activating now
 ```
 
-Applies changes immediately. The new config becomes the default boot entry.
+These wrap `sudo nixos-rebuild <action> --flake ".#jenkonix-2"`. Target another
+host with `make switch NIXNAME=<host>`.
 
-### Test before committing
+### Validate before applying
 
 ```sh
-sudo nixos-rebuild test
+make check     # nix flake check
 ```
 
-Activates the new config without making it the default boot entry. Reverts on
-next reboot if you don't follow up with `switch`.
-
-### Build without activating
+## Updating
 
 ```sh
-sudo nixos-rebuild build
+make update    # nix flake update  -> bumps flake.lock, commit the result
+make switch
 ```
 
-Builds the config and creates a `./result` symlink. Useful for checking the
-build succeeds before applying.
+Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
+GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
+run `make update` and push the new lock file.
 
-### Dry run (show what would change)
+## Android / Termux (Nix-on-Droid)
 
-```sh
-sudo nixos-rebuild dry-activate
-```
+The flake also exposes `nixOnDroidConfigurations.default` for a phone running
+[Nix-on-Droid](https://github.com/nix-community/nix-on-droid). On the device:
 
-Shows which systemd units would be started/stopped/restarted without actually
-doing anything.
+1. Install the Nix-on-Droid app (F-Droid) and open it once to bootstrap Nix.
+2. From a clone of this repo (or directly from GitHub), activate it:
 
----
+   ```sh
+   nix-on-droid switch --flake .#default
+   ```
+
+   If activation fails with store-path errors under proot, retry with
+   `--impure`.
+
+The device config lives in `hosts/droid/` and is intentionally lighter than the
+laptop: terminal tooling only, no desktop or YubiKey signing. The input tracks
+`nix-on-droid`'s `prerelease-25.11` branch (no stable `release-25.11` exists
+yet) and follows this flake's `nixpkgs`/`home-manager`.
 
 ## Rolling Back
 
-### Boot into a previous generation
-
-At the systemd-boot menu, select an older entry — each generation is listed.
-
-### Roll back the running system
+Boot into a previous generation from the systemd-boot menu, or:
 
 ```sh
-sudo nixos-rebuild switch --rollback
+sudo nixos-rebuild switch --rollback           # roll back the running system
+home-manager generations                       # list HM generations
 ```
-
-Or activate a specific generation directly:
-
-```sh
-sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
-sudo /nix/var/nix/profiles/system-<N>-link/bin/switch-to-configuration switch
-```
-
----
-
-## Home Manager
-
-Because Home Manager runs as a NixOS module, `home.nix` is applied automatically
-during `nixos-rebuild switch`. No separate activation step is required.
-
-To check the current Home Manager generation:
-
-```sh
-home-manager generations
-```
-
-To roll back the user environment independently (without a system rebuild):
-
-```sh
-home-manager rollback
-```
-
----
-
-## Package Management
-
-### Search for packages
-
-```sh
-nix search nixpkgs <package>
-```
-
-### Open a temporary shell with a package
-
-```sh
-nix shell nixpkgs#<package>
-```
-
-### Run a package without installing
-
-```sh
-nix run nixpkgs#<package>
-```
-
----
 
 ## Maintenance
 
-### Garbage collect old generations
-
 ```sh
-# Remove generations older than 30 days and collect garbage
+make fmt                                        # format all Nix files (nixfmt)
 sudo nix-collect-garbage --delete-older-than 30d
-
-# Also clean up the boot menu entries
-sudo /run/current-system/bin/switch-to-configuration boot
-```
-
-> Garbage collection also runs automatically weekly (configured in `configuration.nix`).
-
-### Optimise the Nix store (deduplication)
-
-```sh
 sudo nix-store --optimise
-```
-
-> Also runs automatically (configured in `configuration.nix`).
-
-### Update the system
-
-```sh
-sudo nix-channel --update
-sudo nixos-rebuild switch
-```
-
-> Auto-upgrades are enabled and run on a schedule. Run manually to upgrade
-> immediately.
-
-### Show current NixOS version
-
-```sh
 nixos-version
 ```
+
+> GC and store optimisation also run automatically (configured in
+> `modules/nix.nix`).
