@@ -15,6 +15,13 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
+    # UEFI Secure Boot for NixOS (see modules/secure-boot.nix and
+    # docs/secure-boot.md). Pinned to a release tag; bump deliberately.
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote/v1.1.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Nix on Android (Termux). nix-on-droid has no release-26.05 branch, so
     # track master and have it follow this flake's nixpkgs/home-manager (26.05).
     # The exact commit is pinned in flake.lock; swap to a release-26.05 branch

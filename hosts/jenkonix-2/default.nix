@@ -22,6 +22,7 @@
     ../../modules/desktop.nix
     ../../modules/hardware.nix
     ../../modules/security.nix
+    ../../modules/secure-boot.nix
     ../../modules/locale.nix
     ../../modules/packages.nix
     ../../modules/nix.nix
