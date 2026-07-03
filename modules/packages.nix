@@ -1,6 +1,15 @@
 # System-wide programs and packages.
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
+let
+  # A pinned nixos-unstable snapshot, used only for packages we want to track
+  # faster than the stable channel (see below). Kept local to this module so
+  # the rest of the system stays on `pkgs` (stable).
+  pkgs-unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+in
 {
   programs = {
     firefox.enable = true;
@@ -21,7 +30,7 @@
   environment.systemPackages = with pkgs; [
     cheese
     chromium
-    claude-code
+    pkgs-unstable.claude-code
     comaps
     diceware
     dig
@@ -29,6 +38,7 @@
     gh
     ghostty
     gimp
+    gnumake
     gnupg
     helix
     inkscape
