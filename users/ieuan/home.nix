@@ -112,7 +112,7 @@
       # Opt out of Home Manager's default "*" block so the one below is the
       # only wildcard config.
       enableDefaultConfig = false;
-      matchBlocks = {
+      settings = {
         "*" = {
           addKeysToAgent = "yes";
           serverAliveInterval = 60;
