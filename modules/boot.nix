@@ -47,6 +47,14 @@
       "init_on_alloc=1"
       "init_on_free=1"
       "page_alloc.shuffle=1"
+      # Randomise the kernel stack offset on each syscall entry.
+      "randomize_kstack_offset=on"
+      # Don't merge slab caches of similar sizes; keeps heap-spray/overflow
+      # exploits from reaching objects in other caches.
+      "slab_nomerge"
+      # Remove the legacy fixed-address vsyscall page (ancient-glibc compat
+      # only), a classic ROP target at a known address.
+      "vsyscall=none"
     ];
     consoleLogLevel = 0;
     initrd.verbose = false;
@@ -90,6 +98,19 @@
       # Block kexec-based kernel replacement and restrict perf subsystem
       "kernel.kexec_load_disabled" = 1;
       "kernel.perf_event_paranoid" = 3;
+      # Protect against TIME-WAIT assassination (RFC 1337)
+      "net.ipv4.tcp_rfc1337" = 1;
+      # Log packets with spoofed/unroutable source addresses
+      "net.ipv4.conf.all.log_martians" = 1;
+      "net.ipv4.conf.default.log_martians" = 1;
+      # Don't log responses to bogus ICMP errors (avoids log spam attacks)
+      "net.ipv4.icmp_ignore_bogus_error_responses" = 1;
+      # Don't auto-load TTY line disciplines from unprivileged code
+      "dev.tty.ldisc_autoload" = 0;
+      # Disable io_uring, a large and CVE-prone unprivileged kernel surface.
+      # 2 = disabled for everyone. If an app breaks on io_uring, drop to 1
+      # (root/CAP_SYS_ADMIN only) or remove.
+      "kernel.io_uring_disabled" = 2;
     };
   };
 }
