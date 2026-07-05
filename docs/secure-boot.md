@@ -114,12 +114,23 @@ install step fails if `/var/lib/sbctl` has no keys.
    option worded "clear/erase all Secure Boot data", which would also drop
    the revocation database). Save and boot back into NixOS.
 
-6. **Enroll the keys** (keeping Microsoft's certificates so option ROMs —
-   Thunderbolt, GPU — keep working; dropping them can brick some machines):
+6. **Enroll the keys.** `--microsoft` keeps Microsoft's certificates so
+   option ROMs (docks, eGPUs) and MS-signed shims keep working — dropping
+   them can brick some machines. `--firmware-builtin` additionally carries
+   over the certs the firmware ships as defaults: on this Dell the factory
+   `db` (dump it with `mokutil --db`) contains two Dell certs (`Dell Bios DB
+   Key`, `Dell Bios FW Aux Authority 2018`) alongside the Microsoft CAs, and
+   plain `--microsoft` would silently drop them, likely breaking Dell-signed
+   pre-boot tools (F12 BIOS flash, diagnostics):
 
    ```sh
-   sudo sbctl enroll-keys --microsoft
+   sudo sbctl enroll-keys --microsoft --firmware-builtin
    ```
+
+   To preview without touching NVRAM, add `--export esl` (writes the
+   would-be PK/KEK/db bundles to the current directory); inspect with
+   efitools' `sig-list-to-certs` + `openssl x509` and check every subject
+   from the factory `db` dump is still present.
 
 7. **Reboot and confirm:**
 
@@ -147,6 +158,35 @@ bootctl status        # Secure Boot still "enabled (user)"
 `fwupd` firmware updates continue to work: with `--microsoft` enrolled, the
 UEFI capsule updater remains trusted, and dbx (revocation) updates still
 arrive via LVFS.
+
+## Key expiry
+
+UEFI Secure Boot image verification is a signature/trust check with no
+time-based validation (the firmware has no trustworthy pre-boot clock), so
+**certificate expiry never stops the machine booting**. But the two cert
+sets in play age differently:
+
+- **Our sbctl certs** (created 2026-07-05, expire 2031-07-05: `sudo openssl
+  x509 -noout -dates -in /var/lib/sbctl/keys/PK/PK.pem`): expiry is a
+  non-event. We control both signing and verification, sbsign keeps signing
+  with an expired cert, and the firmware keeps accepting it. No
+  auto-renewal, no notification, none needed. Rotate only on compromise,
+  via the same setup-mode + enroll dance as initial setup.
+- **Microsoft's CAs**: the 2011 generation expires in 2026 (KEK CA 2011:
+  2026-06-24, UEFI CA 2011: 2026-06-27, Windows Production PCA 2011:
+  2026-10-19). Existing signatures stay valid and machines keep booting,
+  but Microsoft issues *new* signatures — including **dbx revocation
+  updates**, which we receive via fwupd/LVFS — only under the 2023 CAs
+  ([MS: Secure Boot certificate expiration and CA updates][ms-sb-expiry]).
+  The firmware accepts a dbx update only if it's signed under a KEK CA
+  present in the enrolled KEK, so the 2023 CAs must be in our KEK/db. They
+  are: the factory variables include `Microsoft Corporation KEK 2K CA 2023`
+  (KEK) and `Microsoft UEFI CA 2023` + `Microsoft Option ROM UEFI CA 2023`
+  (db), and enrolling with `--microsoft --firmware-builtin` carries them
+  over. If a future audit (`mokutil --kek`, `mokutil --db`) shows no 2023
+  CAs, re-enroll — dbx updates are silently failing.
+
+[ms-sb-expiry]: https://support.microsoft.com/en-gb/topic/windows-secure-boot-certificate-expiration-and-ca-updates-7ff40d33-95dc-4c3c-8725-a9b95457578e
 
 ## Recovery
 
