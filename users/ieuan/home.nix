@@ -23,13 +23,18 @@
     (pkgs.writeShellScriptBin "git-ssh-signing-key" ''
       serials=$(${pkgs.yubikey-manager}/bin/ykman list --serials 2>/dev/null)
       if echo "$serials" | grep -qx 25305658; then
-        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_yka.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_yka
       elif echo "$serials" | grep -qx 25440569; then
-        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_ykc.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519_sk_ykc
       else
-        key=${config.home.homeDirectory}/.ssh/id_ed25519.pub
+        key=${config.home.homeDirectory}/.ssh/id_ed25519
       fi
-      echo "key::$(cat "$key")"
+      # defaultKeyCommand must return a literal key, and git can only sign
+      # with a literal key via the agent — so load it on demand if missing.
+      if ! ${pkgs.openssh}/bin/ssh-add -L 2>/dev/null | grep -qF "$(awk '{print $2}' "$key.pub")"; then
+        ${pkgs.openssh}/bin/ssh-add -q "$key" 2>/dev/null
+      fi
+      echo "key::$(cat "$key.pub")"
     '')
   ];
 
