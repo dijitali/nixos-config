@@ -2,7 +2,7 @@
 # Override the target host with `make switch NIXNAME=othermachine`.
 NIXNAME ?= jenkonix-2
 
-.PHONY: switch test boot droid update check fmt
+.PHONY: switch test boot droid web update check fmt
 
 # Build and activate, making it the default boot entry.
 switch:
@@ -19,6 +19,11 @@ boot:
 # Activate the Nix-on-Droid environment (run this on the Android device).
 droid:
 	nix-on-droid switch --flake ".#default"
+
+# Build the webserver config locally and activate it on the Hetzner host
+# over SSH (prompts for the remote sudo password). See docs/webserver.md.
+web:
+	nixos-rebuild switch --flake ".#webserver" --target-host ieuan.net --sudo --ask-sudo-password
 
 # Bump flake inputs (nixpkgs, home-manager, nixos-hardware, nix-on-droid) in flake.lock.
 update:

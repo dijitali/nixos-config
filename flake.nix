@@ -46,6 +46,16 @@
         user = "ieuan";
       };
 
+      # Hetzner Cloud VPS serving https://www.ieuan.net/ (see
+      # docs/webserver.md for bootstrap and deployment).
+      nixosConfigurations.webserver = mkSystem {
+        inherit inputs;
+        system = "x86_64-linux";
+        hostname = "webserver";
+        user = "ieuan";
+        server = true;
+      };
+
       # Android / Termux environment, activated on-device with
       # `nix-on-droid switch --flake .#default`.
       nixOnDroidConfigurations.default = inputs.nix-on-droid.lib.nixOnDroidConfiguration {

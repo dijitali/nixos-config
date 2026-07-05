@@ -14,29 +14,40 @@ Flake-based NixOS + Home Manager configuration.
 │   ├── jenkonix-2/
 │   │   ├── default.nix       # Host wiring: hostname, LUKS, imports, stateVersion
 │   │   └── hardware-configuration.nix  # Machine-generated (see below)
+│   ├── webserver/            # Hetzner Cloud VPS for www.ieuan.net (docs/webserver.md)
+│   │   ├── default.nix       # Host wiring: GRUB/BIOS, DHCP + static IPv6, imports
+│   │   ├── hardware-configuration.nix  # Hand-written (stable virtual hardware)
+│   │   └── caddy.nix         # Caddy (+transform-encoder), deploy dirs, firewall
 │   └── droid/                # Android/Termux (Nix-on-Droid)
 │       ├── default.nix       # environment.packages, shell, flakes
 │       └── home.nix          # Lighter Home Manager config for mobile
 ├── modules/                  # Reusable system modules
-│   ├── boot.nix              # Boot loader + kernel hardening
+│   ├── boot.nix              # Boot loader + splash (desktop machines)
+│   ├── kernel-hardening.nix  # Kernel cmdline + sysctl hardening (all hosts)
 │   ├── networking.nix        # NetworkManager, firewall, Tailscale, Avahi
 │   ├── desktop.nix           # Plasma 6, SDDM, PipeWire, printing
 │   ├── hardware.nix          # Bluetooth, scanners, firmware (fwupd)
-│   ├── security.nix          # sudo, AppArmor, smartcards, SSH/GnuPG agents
+│   ├── security.nix          # sudo + AppArmor (all hosts)
+│   ├── smartcard.nix         # YubiKey/PIV daemon, SSH/GnuPG agents (desktops)
+│   ├── ssh-server.nix        # Hardened sshd for hosts accepting inbound SSH
 │   ├── secure-boot.nix       # UEFI Secure Boot via lanzaboote (docs/secure-boot.md)
 │   ├── locale.nix            # Time zone + locale
 │   ├── packages.nix          # System programs + environment.systemPackages
 │   └── nix.nix               # Nix daemon, GC, flake auto-upgrade
 ├── users/
 │   └── ieuan/
-│       ├── nixos.nix         # System account
+│       ├── nixos.nix         # System account (desktop)
+│       ├── server.nix        # Lean server account: wheel + SSH keys, no HM
 │       └── home.nix          # Home Manager configuration
-└── Makefile                  # switch / test / boot / update / check / fmt
+└── Makefile                  # switch / test / boot / web / update / check / fmt
 ```
 
 Adding a new machine is a single `mkSystem` entry in `flake.nix` plus a
 directory under `hosts/`. Home Manager is wired in as a NixOS module by
 `lib/mkSystem.nix`, so `home.nix` changes apply during a normal system rebuild.
+Passing `server = true` to `mkSystem` selects the lean `server.nix` account and
+skips Home Manager (used by the `webserver` host — see
+[docs/webserver.md](docs/webserver.md)).
 
 ## First-time setup / `hardware-configuration.nix`
 
@@ -63,6 +74,16 @@ make boot      # set as default boot entry without activating now
 
 These wrap `sudo nixos-rebuild <action> --flake ".#jenkonix-2"`. Target another
 host with `make switch NIXNAME=<host>`.
+
+The Hetzner webserver is deployed remotely over SSH instead:
+
+```sh
+make web       # nixos-rebuild switch --flake .#webserver --target-host ieuan.net
+```
+
+See [docs/webserver.md](docs/webserver.md) for bootstrap and how it divides
+responsibilities with the [ieuan-net](https://github.com/dijitali/ieuan-net)
+repo (site content + Caddyfile deploys).
 
 ### Validate before applying
 

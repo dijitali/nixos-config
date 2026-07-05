@@ -5,6 +5,9 @@
   system,
   hostname,
   user,
+  # Server hosts get the lean account from users/<user>/server.nix and skip
+  # Home Manager entirely; desktops get nixos.nix + home.nix as before.
+  server ? false,
 }:
 
 inputs.nixpkgs.lib.nixosSystem {
@@ -14,17 +17,19 @@ inputs.nixpkgs.lib.nixosSystem {
   # module via its arguments, e.g. `{ inputs, ... }:`.
   specialArgs = { inherit inputs hostname user; };
 
-  modules = [
-    inputs.home-manager.nixosModules.home-manager
+  modules =
+    [
+      ../hosts/${hostname}
+      (if server then ../users/${user}/server.nix else ../users/${user}/nixos.nix)
+    ]
+    ++ inputs.nixpkgs.lib.optionals (!server) [
+      inputs.home-manager.nixosModules.home-manager
 
-    ../hosts/${hostname}
-    ../users/${user}/nixos.nix
-
-    {
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.extraSpecialArgs = { inherit inputs; };
-      home-manager.users.${user} = import ../users/${user}/home.nix;
-    }
-  ];
+      {
+        home-manager.useGlobalPkgs = true;
+        home-manager.useUserPackages = true;
+        home-manager.extraSpecialArgs = { inherit inputs; };
+        home-manager.users.${user} = import ../users/${user}/home.nix;
+      }
+    ];
 }
