@@ -23,6 +23,7 @@ Flake-based NixOS + Home Manager configuration.
 │   ├── desktop.nix           # Plasma 6, SDDM, PipeWire, printing
 │   ├── hardware.nix          # Bluetooth, scanners, firmware (fwupd)
 │   ├── security.nix          # sudo, AppArmor, smartcards, SSH/GnuPG agents
+│   ├── secure-boot.nix       # UEFI Secure Boot via lanzaboote (docs/secure-boot.md)
 │   ├── locale.nix            # Time zone + locale
 │   ├── packages.nix          # System programs + environment.systemPackages
 │   └── nix.nix               # Nix daemon, GC, flake auto-upgrade
