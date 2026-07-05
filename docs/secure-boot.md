@@ -132,11 +132,36 @@ install step fails if `/var/lib/sbctl` has no keys.
    efitools' `sig-list-to-certs` + `openssl x509` and check every subject
    from the factory `db` dump is still present.
 
+   **If enrollment fails with `File is immutable: /sys/firmware/efi/efivars/…`**:
+   this is not a firmware problem — the Dell BIOS side is fine (Setup Mode
+   being enabled in `sbctl status` proves the key-management step worked).
+   The Linux kernel marks every efivarfs file immutable (`chattr +i`) as a
+   guard against accidental deletion, and even in Setup Mode the leftover
+   `KEK`/`db` variables keep that flag. sbctl deliberately refuses to clear
+   it itself. Clear it and re-run:
+
+   ```sh
+   sudo chattr -i /sys/firmware/efi/efivars/KEK-8be4df61-93ca-11d2-aa0d-00e098032b8c
+   sudo chattr -i /sys/firmware/efi/efivars/db-d719b2cb-3d3a-4596-a3bc-dad00e67656f
+   sudo sbctl enroll-keys --microsoft --firmware-builtin
+   ```
+
+   This doesn't delete the variables — it just lets sbctl overwrite them
+   with the enrolled bundle. The same will apply on any future re-enroll.
+
 7. **Reboot and confirm:**
 
    ```sh
-   bootctl status    # expect: Secure Boot: enabled (user)
+   bootctl status    # expect: Secure Boot: enabled (user) or (deployed)
    ```
+
+   This Dell finalizes to **`enabled (deployed)`** — the most locked-down
+   UEFI state (only authenticated updates signed by our PK/KEK can change
+   the key databases; no unauthenticated mode switches). Functionally
+   identical to `(user)` for signing, dbx updates and daily use. Also
+   confirm the boot chain: `Current Stub: lanzastub`, the default entry is
+   Type #2 (UKI, `.efi` from `EFI/Linux/`), and `Measured UKI: yes` (which
+   unlocks the TPM2 LUKS follow-up below).
 
 8. **Set a firmware (BIOS) admin password.** Without it, anyone at the
    keyboard can simply switch Secure Boot off again.
@@ -144,6 +169,30 @@ install step fails if `/var/lib/sbctl` has no keys.
 9. **Back up `/var/lib/sbctl`** somewhere offline/encrypted (e.g. 1Password
    or a LUKS USB stick). Losing the keys isn't fatal (re-enter Setup Mode and
    re-enroll new ones) but the backup avoids the dance.
+
+### Why not lanzaboote's automated key setup?
+
+Upstream now offers a hands-off alternative to steps 2 and 6
+([auto-generate][lzbt-autogen], [auto-enroll][lzbt-autoenroll]):
+`boot.lanzaboote.autoGenerateKeys.enable` creates the keys in `pkiBundle` via
+a systemd service on first boot, and `boot.lanzaboote.autoEnrollKeys.enable`
+enrolls them (Microsoft certs included by default) on the next reboot. Both
+options exist in our pinned v1.1.0, and for a fresh unattended install
+they'd be the better practice. We stay manual deliberately:
+
+- **`--firmware-builtin` has no auto-enroll equivalent in any release.**
+  `autoEnrollKeys.includeFirmwareBuiltinKeys` exists only on unreleased
+  master (checked 2026-07-05); v1.1.0's auto-enroll would silently drop the
+  Dell factory `db` certs this doc goes out of its way to preserve.
+- The manual flow allows a dry-run (`--export esl`) before touching NVRAM;
+  auto-enroll doesn't.
+- The keys already exist and are enrolled — switching buys nothing.
+
+Revisit if a release ships `includeFirmwareBuiltinKeys` (worth rechecking
+whenever the lanzaboote pin is bumped).
+
+[lzbt-autogen]: https://nix-community.github.io/lanzaboote/how-to-guides/automatically-generate-keys.html
+[lzbt-autoenroll]: https://nix-community.github.io/lanzaboote/how-to-guides/automatically-enroll-keys.html
 
 ## Day-to-day usage
 
