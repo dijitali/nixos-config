@@ -32,6 +32,45 @@ honoured — lanzaboote reads them for its loader configuration.
 The signing keys live only on this machine, readable only by root. They are
 **not** in the repo and are not managed by Nix; back them up (see below).
 
+## Pre-cleanup: stale Ubuntu boot entries
+
+`efibootmgr -v` on jenkonix-2 showed two leftover NVRAM entries from the
+Ubuntu install on the old drive (before the Crucial T500 swap):
+
+- `Boot0004 Ubuntu` — GRUB via `\EFI\ubuntu\shimx64.efi`
+- `Boot0001 Linux Firmware Updater` — fwupd's UEFI capsule updater, also
+  chainloaded through the Ubuntu shim
+
+Both point at partition PARTUUID `18190cd2-…`, which no longer exists on any
+disk in the machine — they're dangling pointers and can never boot. They're
+worth deleting anyway, for two reasons:
+
+1. **Clutter**: they show up in the firmware boot menu and `BootOrder`.
+2. **Secure Boot hygiene**: we enroll with `--microsoft`, so a
+   Microsoft-signed shim is trusted under our policy. A boot entry pointing
+   at a shim is a ready-made side door if a matching partition ever
+   reappears (e.g. plugging in the old drive). Fewer trusted-but-unmanaged
+   boot paths, better.
+
+Delete them (efibootmgr isn't installed; run it from nixpkgs — the `$(nix
+build …)` resolves before sudo, sidestepping sudo's restricted `PATH`):
+
+```sh
+sudo "$(nix build nixpkgs#efibootmgr --no-link --print-out-paths)/bin/efibootmgr" -b 0001 -B
+sudo "$(nix build nixpkgs#efibootmgr --no-link --print-out-paths)/bin/efibootmgr" -b 0004 -B
+```
+
+`-B` deletes the entry and drops it from `BootOrder` in one go. Afterwards
+only two entries remain, both pointing at the real ESP (`46664568-…`):
+`Boot0008 Linux Boot Manager` (systemd-boot, the active entry) and
+`Boot0000 UEFI RST …` (the firmware's auto-created fallback for
+`\EFI\Boot\BootX64.efi` — leave it; the firmware recreates it anyway, and
+lanzaboote signs that fallback loader too).
+
+This doesn't orphan fwupd: our config runs fwupd itself, and it creates a
+fresh updater entry pointing at the real ESP whenever it next stages a
+firmware update.
+
 ## One-time setup (order matters)
 
 Do this **before** rebuilding with this branch merged — the bootloader
