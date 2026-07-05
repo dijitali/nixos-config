@@ -18,10 +18,12 @@
 
     # Shared system modules.
     ../../modules/boot.nix
+    ../../modules/kernel-hardening.nix
     ../../modules/networking.nix
     ../../modules/desktop.nix
     ../../modules/hardware.nix
     ../../modules/security.nix
+    ../../modules/smartcard.nix
     ../../modules/secure-boot.nix
     ../../modules/locale.nix
     ../../modules/packages.nix

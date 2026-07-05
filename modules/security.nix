@@ -1,4 +1,6 @@
-# Privilege escalation, mandatory access control, smartcards and agents.
+# Privilege escalation and mandatory access control, applicable to every
+# host. Smartcard/agent tooling for the desktop machines lives in
+# smartcard.nix.
 {
   security.sudo.wheelNeedsPassword = true;
   # Only members of wheel may run the sudo binaries at all.
@@ -9,19 +11,5 @@
   security.apparmor = {
     enable = true;
     killUnconfinedConfinables = true;
-  };
-
-  # Smartcard daemon (YubiKey / PIV).
-  services.pcscd.enable = true;
-
-  programs.ssh = {
-    startAgent = true;
-    enableAskPassword = true;
-  };
-
-  programs.gnupg.agent.enable = true;
-
-  environment.variables = {
-    SSH_ASKPASS_REQUIRE = "prefer";
   };
 }
