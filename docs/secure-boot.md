@@ -253,11 +253,96 @@ the firmware password matters).
 Rolling back to older generations from the boot menu keeps working: previous
 generations' UKIs were signed when they were built.
 
-## Follow-ups (not yet implemented)
+## TPM2 + FIDO2 LUKS unlock
 
-- **TPM2-bound LUKS unlock**: `sudo systemd-cryptenroll --tpm2-device=auto
-  --tpm2-with-pin=yes /dev/disk/by-uuid/<luks-uuid>` plus
-  `boot.initrd.systemd` TPM support — unlocks only when the measured boot
-  chain is unchanged. Only worthwhile once Secure Boot is enabled and stable.
-- The YubiKeys can be enrolled as an additional LUKS keyslot with
-  `systemd-cryptenroll --fido2-device=auto`.
+Builds on Secure Boot: the LUKS volume key gets sealed by the TPM against
+the boot measurements that lanzaboote's measured boot provides (`Measured
+UKI: yes` in `bootctl status` was the prerequisite). At boot the TPM only
+releases the key if the Secure Boot policy is unchanged **and** a PIN is
+entered — so the unlock becomes "this machine, untampered, plus something
+you know". A second keyslot bound to the YubiKeys (FIDO2 hmac-secret)
+covers TPM failure, and the original passphrase slot stays as the last
+resort. **Never remove the passphrase slot.**
+
+Why the PIN: a TPM-only slot means a stolen laptop decrypts itself to the
+SDDM login screen, collapsing the security boundary to the login prompt.
+The PIN can be short (6–8 digits): wrong guesses are rate-limited by the
+TPM's dictionary-attack lockout, and the slot cannot be brute-forced
+offline at all — the secret never leaves the chip, so an attacker with a
+disk image is back to attacking the (long) passphrase slot.
+
+### How it's implemented
+
+`hosts/jenkonix-2/default.nix` adds `crypttabExtraOpts = [ "tpm2-device=auto"
+"fido2-device=auto" "token-timeout=10s" ]` to both LUKS volumes (root
+`c54ac17e-…` and swap `58f3676b-…` — both, or swap still prompts for a
+passphrase). The systemd initrd's TPM2/FIDO2 support
+(`boot.initrd.systemd.{tpm2,fido2}.enable`) already defaults to on.
+
+Unlock order (verified in systemd v260's `cryptsetup.c`: TPM2 wins
+`determine_token_type()`, and each failure invalidates that mechanism and
+re-enters the loop):
+
+1. **TPM2** — Plymouth asks for the PIN.
+2. **FIDO2** — on TPM failure; touch the plugged-in YubiKey, or after
+   `token-timeout` (10s) with no key present, fall through.
+3. **Passphrase** — always works, on every generation ever built (older
+   initrds don't even have the token options).
+
+The options are inert until keyslots are enrolled: an initrd with
+`tpm2-device=auto` and no TPM2 keyslot just falls through to the
+passphrase, so the config can land before enrollment in either order.
+
+### Enrollment (one-time, per volume)
+
+Uses the default PCR 7 binding (Secure Boot policy). Do **not** bind PCR 11
+(the UKI measurement) — it changes on every rebuild and needs signed-policy
+machinery to be usable.
+
+```sh
+# TPM2 + PIN, both volumes, same PIN (systemd caches the credential during
+# boot, so one PIN entry unlocks both). Asks for the existing passphrase.
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-with-pin=yes \
+  /dev/disk/by-uuid/c54ac17e-bd99-4425-b4f8-c0cc62285b61
+sudo systemd-cryptenroll --tpm2-device=auto --tpm2-with-pin=yes \
+  /dev/disk/by-uuid/58f3676b-64b0-4165-88f1-366ef142fbcf
+
+# FIDO2, per YubiKey plugged in (4 runs total: 2 keys x 2 volumes).
+sudo systemd-cryptenroll --fido2-device=auto /dev/disk/by-uuid/c54ac17e-…
+sudo systemd-cryptenroll --fido2-device=auto /dev/disk/by-uuid/58f3676b-…
+
+# Inspect the slots afterwards:
+sudo systemd-cryptenroll /dev/disk/by-uuid/c54ac17e-…
+```
+
+Then rebuild onto this branch's config and reboot. Test the whole ladder
+once: PIN unlock, then a boot where you fail the PIN and use the YubiKey,
+then escape to the passphrase.
+
+### What invalidates the TPM slot
+
+PCR 7 measures the Secure Boot *policy*, not the kernel — so normal
+rebuilds and kernel updates never break it. What does (by design):
+toggling Secure Boot, re-enrolling SB keys, and — easy to forget — **dbx
+revocation updates via fwupd/LVFS**. The symptom is the PIN prompt being
+replaced by the passphrase prompt. After one of those events that's
+routine; at any other time, treat it as the tamper alarm it is.
+
+Re-seal (both volumes):
+
+```sh
+sudo systemd-cryptenroll --wipe-slot=tpm2 --tpm2-device=auto \
+  --tpm2-with-pin=yes /dev/disk/by-uuid/…
+```
+
+The FIDO2 and passphrase slots are unaffected by PCR changes.
+
+### Recovery notes
+
+- **TPM lockout** (too many wrong PINs): boot with the YubiKey or
+  passphrase, then clear it with `tpm2_dictionarylockout --clear-lockout`
+  (`nix shell nixpkgs#tpm2-tools`), or let it decay on its own.
+- **Undo any mechanism** without data loss:
+  `systemd-cryptenroll --wipe-slot=tpm2` (or `=fido2`) per volume.
+- **Motherboard/TPM swap**: TPM slot is gone for good — unlock via
+  YubiKey/passphrase, wipe the stale slot, enroll the new TPM.
