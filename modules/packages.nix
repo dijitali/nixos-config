@@ -30,7 +30,6 @@ in
   environment.systemPackages = with pkgs; [
     cheese
     chromium
-    pkgs-unstable.claude-code
     comaps
     diceware
     dig
@@ -51,6 +50,8 @@ in
     openssl
     opentofu
     organicmaps
+    pkgs-unstable.claude-code
+    pkgs-unstable.rapidraw
     powershell
     pre-commit
     python314
