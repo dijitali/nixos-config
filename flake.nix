@@ -15,6 +15,13 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
+    # Declarative disk partitioning, used by nixos-anywhere to install the
+    # cloud servers (hosts/jenkosrv-*). Pinned to a release tag; bump deliberately.
+    disko = {
+      url = "github:nix-community/disko/v1.13.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # UEFI Secure Boot for NixOS (see modules/secure-boot.nix and
     # docs/secure-boot.md). Pinned to a release tag; bump deliberately.
     lanzaboote = {
@@ -44,6 +51,16 @@
         system = "x86_64-linux";
         hostname = "jenkonix-2";
         user = "ieuan";
+      };
+
+      # Hetzner Cloud web server, installed by nixos-anywhere from the
+      # vps-config repo and updated with `make deploy`.
+      nixosConfigurations.jenkosrv-fsn1-3 = mkSystem {
+        inherit inputs;
+        system = "x86_64-linux";
+        hostname = "jenkosrv-fsn1-3";
+        user = "ieuan";
+        headless = true;
       };
 
       # Android / Termux environment, activated on-device with

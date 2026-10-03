@@ -6,14 +6,17 @@ Flake-based NixOS + Home Manager configuration.
 
 ```
 .
-├── flake.nix                 # Inputs (nixpkgs, home-manager, nixos-hardware) + outputs
+├── flake.nix                 # Inputs (nixpkgs, home-manager, nixos-hardware, disko) + outputs
 ├── flake.lock                # Pinned input versions (generated)
 ├── lib/
-│   └── mkSystem.nix          # Helper that builds a host from a name + user
+│   └── mkSystem.nix          # Helper that builds a host from a name + user (+ headless)
 ├── hosts/
 │   ├── jenkonix-2/
 │   │   ├── default.nix       # Host wiring: hostname, LUKS, imports, stateVersion
 │   │   └── hardware-configuration.nix  # Machine-generated (see below)
+│   ├── jenkosrv-fsn1-3/      # Hetzner Cloud web server (headless)
+│   │   ├── default.nix       # Host wiring: GRUB, addresses, Tailscale tags
+│   │   └── disk-config.nix   # disko partition layout used at install
 │   └── droid/                # Android/Termux (Nix-on-Droid)
 │       ├── default.nix       # environment.packages, shell, flakes
 │       └── home.nix          # Lighter Home Manager config for mobile
@@ -24,19 +27,24 @@ Flake-based NixOS + Home Manager configuration.
 │   ├── hardware.nix          # Bluetooth, scanners, firmware (fwupd)
 │   ├── security.nix          # sudo, AppArmor, smartcards, SSH/GnuPG agents
 │   ├── secure-boot.nix       # UEFI Secure Boot via lanzaboote (docs/secure-boot.md)
+│   ├── server.nix            # Headless baseline: SSH, networkd, firewall, Tailscale, sudo
+│   ├── web/ieuan-net.nix     # Caddy for the ieuan.net sites
 │   ├── locale.nix            # Time zone + locale
 │   ├── packages.nix          # System programs + environment.systemPackages
 │   └── nix.nix               # Nix daemon, GC, flake auto-upgrade
 ├── users/
 │   └── ieuan/
-│       ├── nixos.nix         # System account
+│       ├── nixos.nix         # System account (desktop)
+│       ├── server.nix        # System account (headless: SSH keys, wheel)
 │       └── home.nix          # Home Manager configuration
-└── Makefile                  # switch / test / boot / update / check / fmt
+└── Makefile                  # switch / test / boot / deploy / update / check / fmt
 ```
 
 Adding a new machine is a single `mkSystem` entry in `flake.nix` plus a
 directory under `hosts/`. Home Manager is wired in as a NixOS module by
 `lib/mkSystem.nix`, so `home.nix` changes apply during a normal system rebuild.
+Pass `headless = true` for servers: Home Manager is skipped and the user is
+defined by `users/<user>/server.nix` instead of `nixos.nix`.
 
 ## First-time setup / `hardware-configuration.nix`
 
@@ -80,6 +88,23 @@ make switch
 Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
 GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
+
+## Servers
+
+`jenkosrv-fsn1-3` is a Hetzner Cloud VM. Its first install is done by
+nixos-anywhere from the OpenTofu in the
+[vps-config](https://github.com/dijitali/vps-config) repo (see
+`docs/nixos-migration.md` there), which partitions the disk with
+`hosts/jenkosrv-fsn1-3/disk-config.nix` and installs this flake. After that:
+
+```sh
+make deploy    # build here, activate over SSH (nixos-rebuild --target-host)
+```
+
+`modules/server.nix` enables passwordless sudo for `wheel` so this, and the
+`sudo systemctl reload caddy` in ieuan-net's deploy script, run without a
+prompt. The server also auto-upgrades from this flake on GitHub
+(`modules/nix.nix`), so pushing a new `flake.lock` updates it too.
 
 ## Android / Termux (Nix-on-Droid)
 
