@@ -58,4 +58,20 @@
     80
     443
   ];
+
+  # Root can fetch the private ieuan-net repo with a read-only deploy key that
+  # vps-config's OpenTofu creates and installs at /var/lib/deploy-keys/ieuan-net
+  # (nixos-anywhere extra files). Scoped to root so interactive users' own keys
+  # are unaffected. GitHub's host keys are pinned (https://api.github.com/meta).
+  programs.ssh = {
+    extraConfig = ''
+      Match user root host github.com
+        IdentityFile /var/lib/deploy-keys/ieuan-net
+        IdentitiesOnly yes
+    '';
+    knownHosts.github = {
+      hostNames = [ "github.com" ];
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
+    };
+  };
 }
