@@ -21,9 +21,9 @@
 
   networking.hostName = "jenkosrv-fsn1-3";
 
-  # Filled in once OpenTofu has created the server's primary IPv6 (phase 2 of
-  # the migration). Until then the host is IPv4-only.
-  server.ipv6Address = null;
+  # First address of the primary IPv6 /64 created in vps-config
+  # (hcloud_primary_ip.jenkosrv_fsn1_3_v6; see `tofu output`).
+  server.ipv6Address = "2a01:4f8:c17:d6d::1/64";
   server.tailscaleTags = [
     "tag:personal"
     "tag:work"
