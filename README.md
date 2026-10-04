@@ -96,7 +96,9 @@ run `make update` and push the new lock file.
 nixos-anywhere from the OpenTofu in the
 [vps-config](https://github.com/dijitali/vps-config) repo (see
 `docs/nixos-migration.md` there), which partitions the disk with
-`hosts/jenkosrv-fsn1-3/disk-config.nix` and installs this flake. Its root
+`hosts/jenkosrv-fsn1-3/disk-config.nix` and installs this flake. No addresses
+are pinned here: IPv4 comes from DHCP and IPv6 from Hetzner's metadata service
+at boot (`server.hetznerMetadataIPv6`). Its root
 filesystem is a tmpfs, so every boot starts from this flake; only
 `/nix/persist` (install-time secrets) and the separate `/persist` volume
 (listed in `modules/impermanence.nix` and the host file) survive. After that:

@@ -1,9 +1,11 @@
 # Baseline for headless cloud servers: SSH, firewall, networking, Tailscale and
-# passwordless sudo for wheel. Host-specific addresses are set through the
-# `server.*` options below.
+# passwordless sudo for wheel. IPv4 comes from DHCP; on Hetzner Cloud the IPv6
+# address is read from the metadata service at boot (`server.hetznerMetadataIPv6`),
+# so no addresses are pinned in this repo.
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -12,14 +14,15 @@ let
 in
 {
   options.server = {
-    ipv6Address = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      example = "2a01:4f8:c013:6981::1/64";
+    hetznerMetadataIPv6 = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
       description = ''
-        Static public IPv6 address with prefix length. Hetzner Cloud hands out
-        a /64 per server but does not announce it over RA/DHCPv6, so the first
-        address has to be configured here. IPv4 always comes from DHCP.
+        Configure the server's public IPv6 address from the Hetzner Cloud
+        metadata service at every boot. Hetzner assigns a /64 per server but
+        does not announce it over RA/DHCPv6; the metadata service's
+        network-config carries the address and gateway. Following it at boot
+        means a changed primary IP needs no config change here.
       '';
     };
 
@@ -52,9 +55,45 @@ in
         DHCP = "ipv4";
         IPv6AcceptRA = false;
       };
-      address = lib.optional (cfg.ipv6Address != null) cfg.ipv6Address;
-      # Hetzner's IPv6 gateway is the link-local fe80::1 on every server.
-      routes = lib.optional (cfg.ipv6Address != null) { Gateway = "fe80::1"; };
+    };
+
+    # Reads the IPv6 address and gateway from Hetzner's metadata service (reached
+    # over the DHCPv4 link) and adds them to 10-wan as a runtime drop-in under
+    # /run, then has networkd reconfigure. Re-done every boot; if the metadata
+    # service is unavailable, IPv4 still works and the unit retries.
+    systemd.services.hetzner-metadata-ipv6 = lib.mkIf cfg.hetznerMetadataIPv6 {
+      description = "Configure IPv6 from Hetzner Cloud metadata";
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
+      path = [
+        pkgs.curl
+        pkgs.yq-go
+        config.systemd.package
+      ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        Restart = "on-failure";
+        RestartSec = 10;
+      };
+      script = ''
+        set -euo pipefail
+        config=$(curl -fsS --retry 5 --retry-connrefused --retry-delay 2 \
+          http://169.254.169.254/hetzner/v1/metadata/network-config)
+        subnet='[.config[] | select(.type == "physical") | .subnets[] | select(.ipv6 == true and .type == "static")][0]'
+        address=$(printf '%s' "$config" | yq "$subnet.address" -)
+        gateway=$(printf '%s' "$config" | yq "$subnet.gateway" -)
+        if [ -z "$address" ] || [ "$address" = null ] || [ -z "$gateway" ] || [ "$gateway" = null ]; then
+          echo "no static IPv6 subnet in Hetzner network-config" >&2
+          exit 1
+        fi
+        mkdir -p /run/systemd/network/10-wan.network.d
+        printf '[Network]\nAddress=%s\n\n[Route]\nGateway=%s\n' "$address" "$gateway" \
+          > /run/systemd/network/10-wan.network.d/50-hetzner-ipv6.conf
+        networkctl reload
+        echo "configured $address via $gateway"
+      '';
     };
 
     services.openssh = {

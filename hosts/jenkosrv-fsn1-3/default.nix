@@ -22,9 +22,9 @@
 
   networking.hostName = "jenkosrv-fsn1-3";
 
-  # First address of the primary IPv6 /64 created in vps-config
-  # (hcloud_primary_ip.jenkosrv_fsn1_3_v6; see `tofu output`).
-  server.ipv6Address = "2a01:4f8:c17:d6d::1/64";
+  # IPv4 from DHCP; IPv6 from the Hetzner metadata service at boot, so the
+  # primary IPs created in vps-config are never pinned here.
+  server.hetznerMetadataIPv6 = true;
   server.tailscaleTags = [
     "tag:personal"
     "tag:work"
@@ -61,6 +61,9 @@
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
+  # Headless: the menu is only reachable from Hetzner's web console, so keep a
+  # short window for picking an older generation instead of the 5 s default.
+  boot.loader.timeout = 1;
 
   # This value determines the NixOS release from which the default settings
   # for stateful data were taken. Do not change without reading the docs.

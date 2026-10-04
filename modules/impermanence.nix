@@ -33,6 +33,9 @@
     device = "/dev/disk/persist";
     fsType = "ext4";
     neededForBoot = true;
+    # Fail fast (emergency shell) if the volume is missing, rather than
+    # waiting the default 90 s.
+    options = [ "x-systemd.device-timeout=20s" ];
   };
 
   environment.persistence."/persist" = {
