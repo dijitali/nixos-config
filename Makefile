@@ -22,7 +22,7 @@ boot:
 # first install is done by nixos-anywhere from vps-config; this is for every
 # change after that. Needs passwordless sudo on the server (modules/server.nix).
 deploy:
-	nixos-rebuild switch --flake ".#$(SERVER)" --target-host "ieuan@$(SERVER)" --use-remote-sudo
+	nixos-rebuild switch --flake ".#$(SERVER)" --target-host "ieuan@$(SERVER)" --sudo
 
 # Activate the Nix-on-Droid environment (run this on the Android device).
 droid:

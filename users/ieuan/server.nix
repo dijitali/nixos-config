@@ -4,6 +4,10 @@
 { pkgs, ... }:
 
 {
+  # Accounts come only from this config. On the impermanent servers /etc/shadow
+  # is rebuilt every boot anyway, so a `passwd` change would be lost.
+  users.mutableUsers = false;
+
   users.users.ieuan = {
     isNormalUser = true;
     description = "Ieuan";
