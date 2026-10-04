@@ -139,6 +139,14 @@
           hostname = "github.com";
           user = "git";
         };
+        # Hetzner web server. Its host key is generated in vps-config's OpenTofu
+        # and pinned in known_hosts under this name only. Applies when the
+        # destination is the short name or its Tailscale FQDN; to connect by IP
+        # use `ssh -o HostName=<ip> jenkosrv-fsn1-3`.
+        "jenkosrv-fsn1-3 jenkosrv-fsn1-3.*" = {
+          hostKeyAlias = "jenkosrv-fsn1-3";
+          user = "ieuan";
+        };
       };
     };
   };

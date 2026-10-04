@@ -1,8 +1,10 @@
 # Convenience wrappers around nixos-rebuild for the flake.
 # Override the target host with `make switch NIXNAME=othermachine`.
 NIXNAME ?= jenkonix-2
+# Remote server to deploy with `make deploy` (built here, activated over SSH).
+SERVER ?= jenkosrv-fsn1-3
 
-.PHONY: switch test boot droid update check fmt
+.PHONY: switch test boot deploy droid update check fmt
 
 # Build and activate, making it the default boot entry.
 switch:
@@ -15,6 +17,12 @@ test:
 # Build and set as default boot entry without activating now.
 boot:
 	sudo nixos-rebuild boot --flake ".#$(NIXNAME)"
+
+# Build the server's configuration locally and activate it over SSH. The
+# first install is done by nixos-anywhere from vps-config; this is for every
+# change after that. Needs passwordless sudo on the server (modules/server.nix).
+deploy:
+	nixos-rebuild switch --flake ".#$(SERVER)" --target-host "ieuan@$(SERVER)" --sudo
 
 # Activate the Nix-on-Droid environment (run this on the Android device).
 droid:
