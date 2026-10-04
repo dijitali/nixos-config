@@ -46,6 +46,10 @@
   # The Caddy unit is sandboxed (ProtectSystem) with only dataDir writable; the
   # access log lives on tmpfs under /run/access, as on the Ubuntu server.
   systemd.services.caddy.serviceConfig.ReadWritePaths = [ "/run/access" ];
+  # Caddy's data dir holds ACME account and certificate keys. systemd re-applies
+  # StateDirectoryMode on every start (default 0755), which would override the
+  # 0700 set on the persisted directory, so set it here too.
+  systemd.services.caddy.serviceConfig.StateDirectoryMode = "0700";
 
   # The deploy scripts run `caddy validate` (as the caddy user) on the server
   # before reloading, so the same binary (with plugins) must be on PATH, not
