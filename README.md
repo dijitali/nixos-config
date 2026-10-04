@@ -6,7 +6,7 @@ Flake-based NixOS + Home Manager configuration.
 
 ```
 .
-├── flake.nix                 # Inputs (nixpkgs, home-manager, nixos-hardware, disko) + outputs
+├── flake.nix                 # Inputs (nixpkgs, home-manager, nixos-hardware, disko, impermanence) + outputs
 ├── flake.lock                # Pinned input versions (generated)
 ├── lib/
 │   └── mkSystem.nix          # Helper that builds a host from a name + user (+ headless)
@@ -16,7 +16,7 @@ Flake-based NixOS + Home Manager configuration.
 │   │   └── hardware-configuration.nix  # Machine-generated (see below)
 │   ├── jenkosrv-fsn1-3/      # Hetzner Cloud web server (headless)
 │   │   ├── default.nix       # Host wiring: GRUB, addresses, Tailscale tags
-│   │   └── disk-config.nix   # disko partition layout used at install
+│   │   └── disk-config.nix   # disko layout: /boot + /nix on disk, tmpfs /
 │   └── droid/                # Android/Termux (Nix-on-Droid)
 │       ├── default.nix       # environment.packages, shell, flakes
 │       └── home.nix          # Lighter Home Manager config for mobile
@@ -28,6 +28,7 @@ Flake-based NixOS + Home Manager configuration.
 │   ├── security.nix          # sudo, AppArmor, smartcards, SSH/GnuPG agents
 │   ├── secure-boot.nix       # UEFI Secure Boot via lanzaboote (docs/secure-boot.md)
 │   ├── server.nix            # Headless baseline: SSH, networkd, firewall, Tailscale, sudo
+│   ├── impermanence.nix      # Wipe-on-boot root; state on a /persist Hetzner volume
 │   ├── web/ieuan-net.nix     # Caddy for the ieuan.net sites
 │   ├── locale.nix            # Time zone + locale
 │   ├── packages.nix          # System programs + environment.systemPackages
@@ -95,7 +96,10 @@ run `make update` and push the new lock file.
 nixos-anywhere from the OpenTofu in the
 [vps-config](https://github.com/dijitali/vps-config) repo (see
 `docs/nixos-migration.md` there), which partitions the disk with
-`hosts/jenkosrv-fsn1-3/disk-config.nix` and installs this flake. After that:
+`hosts/jenkosrv-fsn1-3/disk-config.nix` and installs this flake. Its root
+filesystem is a tmpfs, so every boot starts from this flake; only
+`/nix/persist` (install-time secrets) and the separate `/persist` volume
+(listed in `modules/impermanence.nix` and the host file) survive. After that:
 
 ```sh
 make deploy    # build here, activate over SSH (nixos-rebuild --target-host)

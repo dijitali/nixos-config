@@ -14,6 +14,7 @@
     ./disk-config.nix
 
     ../../modules/server.nix
+    ../../modules/impermanence.nix
     ../../modules/web/ieuan-net.nix
     ../../modules/locale.nix
     ../../modules/nix.nix
@@ -27,6 +28,30 @@
   server.tailscaleTags = [
     "tag:personal"
     "tag:work"
+  ];
+
+  # State that must survive the wipe-on-boot root, on the /persist volume (see
+  # modules/impermanence.nix for the baseline list).
+  environment.persistence."/persist".directories = [
+    # ACME account and certificates; losing them each boot would hit Let's
+    # Encrypt rate limits.
+    {
+      directory = "/var/lib/caddy";
+      user = "caddy";
+      group = "caddy";
+      mode = "0700";
+    }
+    # Site content and dated backups, rsynced by ieuan-net's deploy.sh.
+    {
+      directory = "/var/www";
+      mode = "0755";
+    }
+    {
+      directory = "/var/backups/ieuan-net";
+      user = "ieuan";
+      group = "users";
+      mode = "0755";
+    }
   ];
 
   # GRUB rather than systemd-boot: Hetzner Cloud boots x86 VMs via legacy BIOS

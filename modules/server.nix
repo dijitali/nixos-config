@@ -59,6 +59,15 @@ in
 
     services.openssh = {
       enable = true;
+      # Generated in OpenTofu and written by nixos-anywhere at install time, so
+      # the host identity is stable across reboots (impermanent root) and
+      # reinstalls. sshd generates it here if missing.
+      hostKeys = [
+        {
+          path = "/nix/persist/secrets/ssh_host_ed25519_key";
+          type = "ed25519";
+        }
+      ];
       settings = {
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
@@ -82,9 +91,9 @@ in
       enable = true;
       openFirewall = true;
       # Written at install time (nixos-anywhere extra files) from a single-use,
-      # pre-authorised tailnet key created in vps-config's OpenTofu. tailscaled
-      # only reads it on first start; it is harmless once the node is joined.
-      authKeyFile = "/var/lib/tailscale/authkey";
+      # pre-authorised tailnet key created in vps-config's OpenTofu. Only used
+      # until the node has state in /var/lib/tailscale; harmless after that.
+      authKeyFile = "/nix/persist/secrets/tailscale-authkey";
       extraUpFlags = lib.optional (
         cfg.tailscaleTags != [ ]
       ) "--advertise-tags=${lib.concatStringsSep "," cfg.tailscaleTags}";

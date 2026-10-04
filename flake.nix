@@ -22,6 +22,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Wipe-on-boot root for the cloud servers (modules/impermanence.nix). No
+    # release tags upstream; the commit is pinned in flake.lock.
+    impermanence = {
+      url = "github:nix-community/impermanence";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     # UEFI Secure Boot for NixOS (see modules/secure-boot.nix and
     # docs/secure-boot.md). Pinned to a release tag; bump deliberately.
     lanzaboote = {
