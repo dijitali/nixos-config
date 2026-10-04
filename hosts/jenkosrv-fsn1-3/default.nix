@@ -41,7 +41,12 @@
       group = "caddy";
       mode = "0700";
     }
-    # Site content and dated backups, rsynced by ieuan-net's deploy.sh.
+    # Push-deployed sites: Caddy site files (installed by each site repo's
+    # deploy script, as root) and their content.
+    {
+      directory = "/etc/caddy/sites-enabled";
+      mode = "0755";
+    }
     {
       directory = "/var/www";
       mode = "0755";

@@ -1,9 +1,11 @@
-# Caddy, configured to serve the ieuan.net sites.
+# Caddy as a generic host for push-deployed sites.
 #
-# The site config itself lives in the ieuan-net repo: `mise run caddy:deploy`
-# installs ieuan-net.Caddyfile (and its snippets) into /etc/caddy/sites-enabled/
-# and reloads Caddy, and `mise run deploy` rsyncs the built site into
-# /var/www/public. This module provides everything those scripts assume exists.
+# Site config is not managed here: each site's own repo installs
+# <site>.Caddyfile into /etc/caddy/sites-enabled/ and its content under
+# /var/www/, then reloads Caddy (ieuan-net: `mise run caddy:deploy` and
+# `mise run deploy`; jensys-uk, net-diagnostics, jnkns.uk: ./deploy.sh). This
+# module provides what those scripts assume exists. Both directories persist
+# across reboots (see the host's environment.persistence).
 { config, pkgs, ... }:
 
 {
@@ -23,13 +25,21 @@
     # Mirrors the Ubuntu server's top-level Caddyfile. The NixOS module installs
     # this as /etc/caddy/caddy_config and nothing else under /etc/caddy, so the
     # imported directory is ours to fill at runtime; an unmatched glob just logs
-    # a warning, so Caddy starts cleanly before the first `caddy:deploy`.
+    # a warning, so Caddy starts cleanly before the first deploy.
+    #
+    # - The admin endpoint stays at its localhost-only default: the unit's
+    #   reload (`systemctl reload caddy`, used by every deploy script) goes
+    #   through it.
+    # - Only *.Caddyfile is imported: snippet files such as
+    #   ieuan-net.Caddyfile.snippets are imported by their site file, and
+    #   importing them twice is a config error.
     adapter = "caddyfile";
     configFile = pkgs.writeText "Caddyfile" ''
       {
-        admin off
+        # ACME account email, for certificate expiry/problem notices.
+        email hi@ieuan.net
       }
-      import /etc/caddy/sites-enabled/*
+      import /etc/caddy/sites-enabled/*.Caddyfile
     '';
   };
 
@@ -37,17 +47,14 @@
   # access log lives on tmpfs under /run/access, as on the Ubuntu server.
   systemd.services.caddy.serviceConfig.ReadWritePaths = [ "/run/access" ];
 
-  # ieuan-net's deploy-caddy.sh runs `sudo caddy validate` on the server before
-  # installing a new Caddyfile, so the same binary (with plugins) must be on
-  # PATH, not just inside the unit.
+  # The deploy scripts run `caddy validate` (as the caddy user) on the server
+  # before reloading, so the same binary (with plugins) must be on PATH, not
+  # just inside the unit.
   environment.systemPackages = [ config.services.caddy.package ];
 
   systemd.tmpfiles.rules = [
-    # Where caddy:deploy installs the site Caddyfile + snippets (as root).
-    "d /etc/caddy/sites-enabled 0755 root root -"
     # Site content and the dated backups of replaced files, both written by
     # deploy.sh over rsync as ieuan.
-    "d /var/www 0755 root root -"
     "d /var/www/public 0755 ieuan users -"
     "d /var/backups/ieuan-net 0755 ieuan users -"
     # Access log directory for the access_log snippet.

@@ -47,6 +47,11 @@ in
       nftables.enable = true;
     };
 
+    # Local stub resolver; tailscaled hands it the tailnet's MagicDNS domain as a
+    # split-DNS route, so *.ts.net names resolve (e.g. Caddy upstreams on the
+    # tailnet) without tailscaled rewriting /etc/resolv.conf.
+    services.resolved.enable = true;
+
     systemd.network.networks."10-wan" = {
       # Hetzner Cloud x86 guests show up as ens*/enp*/eth0 depending on the
       # kernel and whether predictable names are on; match them all.
