@@ -22,32 +22,23 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Site repos served by the web servers (modules/web/sites.nix). Source only,
-    # not evaluated as flakes. They are private, so they're fetched over SSH via
-    # per-repo host aliases (github-<repo>): one `Host github-*` ssh_config block
-    # maps them to github.com. Your own key works with that block (Home Manager
-    # adds it on the laptop); the servers use a read-only deploy key per repo,
-    # selected by the alias (modules/web/sites.nix).
+    # Site repos served by the web server (hosts/jenkosrv-fsn1-3, via
+    # modules/web/sites.nix). Each is a flake exporting `caddyConfig`, its own
+    # self-contained Caddy config. They're private, so they're fetched over SSH
+    # via per-repo host aliases (github-<repo>): one `Host github-*` ssh_config
+    # block maps them to github.com. Your own key works with that block (Home
+    # Manager adds it on the laptop); the servers use a read-only deploy key
+    # per repo (modules/server.nix).
     ieuan-net = {
       url = "git+ssh://git@github-ieuan-net/dijitali/ieuan-net";
-      flake = false;
+      # Its flake also has a dev shell; reuse this flake's nixpkgs for it.
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    ieuan-co-uk = {
-      url = "git+ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk";
-      flake = false;
-    };
-    jensys-uk = {
-      url = "git+ssh://git@github-jensys-uk/dijitali/jensys-uk";
-      flake = false;
-    };
-    net-diagnostics = {
-      url = "git+ssh://git@github-net-diagnostics/dijitali/net-diagnostics";
-      flake = false;
-    };
-    jnkns-uk = {
-      url = "git+ssh://git@github-jnkns-uk/dijitali/jnkns-uk";
-      flake = false;
-    };
+    ieuan-co-uk.url = "git+ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk";
+    jensys-uk.url = "git+ssh://git@github-jensys-uk/dijitali/jensys-uk";
+    net-diagnostics.url = "git+ssh://git@github-net-diagnostics/dijitali/net-diagnostics";
+    jnkns-uk.url = "git+ssh://git@github-jnkns-uk/dijitali/jnkns-uk";
 
     # Wipe-on-boot root for the cloud servers (modules/impermanence.nix). No
     # release tags upstream; the commit is pinned in flake.lock.

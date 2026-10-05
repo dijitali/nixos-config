@@ -127,6 +127,28 @@ in
       execWheelOnly = true;
     };
 
+    # Private flake inputs are fetched over SSH via per-repo host aliases
+    # (git@github-<repo>, see flake.nix). For root (auto-upgrade), one block
+    # covers them all: `%n` is the alias as written, which names that repo's
+    # read-only deploy key, installed by vps-config's OpenTofu. `localuser`
+    # (not `user`, which matches the remote login, always `git`) keeps
+    # interactive users' own keys unaffected. With HostName set, known_hosts is
+    # checked against github.com, whose key is pinned
+    # (https://api.github.com/meta).
+    programs.ssh = {
+      extraConfig = ''
+        Match localuser root host github-*
+          HostName github.com
+          User git
+          IdentityFile /nix/persist/secrets/deploy-keys/%n
+          IdentitiesOnly yes
+      '';
+      knownHosts.github = {
+        hostNames = [ "github.com" ];
+        publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
+      };
+    };
+
     # Deploys push the system closure over SSH as the admin user, which needs
     # to be trusted by the Nix daemon to add paths to the store.
     nix.settings.trusted-users = [ "@wheel" ];
