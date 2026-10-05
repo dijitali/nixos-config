@@ -52,6 +52,26 @@
         "type": "github"
       }
     },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785627969,
+        "narHash": "sha256-4dtXQk/NMePegK/nWp5NSeuZKLATItOq61lpEvmXqGw=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "427bf4bd9435fdf21321c8cc628c24efc14c0f7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "gitignore": {
       "inputs": {
         "nixpkgs": [
@@ -96,13 +116,12 @@
       }
     },
     "ieuan-co-uk": {
-      "flake": false,
       "locked": {
-        "lastModified": 1791101787,
-        "narHash": "sha256-OFNMhv2VRX69DvALzgA0GKwnRy+YRV+I2MlOQ/KmNP4=",
+        "lastModified": 1791231628,
+        "narHash": "sha256-/+3mDJYWbC6O9PAk5IGIhCj9IODHm/B7/q9JU6TdqJc=",
         "ref": "refs/heads/main",
-        "rev": "0462e3e0f1e98e6804b703281fd1ad58c8dcc88e",
-        "revCount": 1,
+        "rev": "6fcad11513612c7da8d5f603a960092582705d0c",
+        "revCount": 3,
         "type": "git",
         "url": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk"
       },
@@ -112,13 +131,18 @@
       }
     },
     "ieuan-net": {
-      "flake": false,
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1791105447,
-        "narHash": "sha256-9HFRlrTg5mDitzJFmXMMFwZCDlS1f7JTqaPC+P8O2/Q=",
+        "lastModified": 1791231612,
+        "narHash": "sha256-yRGdvX5UQgYHXMYP7+Ni0w83uWaUHmkO8ORrNMuB8HY=",
         "ref": "refs/heads/main",
-        "rev": "6f1b565251cd5d44b8fde3a22526dcffa8538f97",
-        "revCount": 467,
+        "rev": "fbaad0fce9b3a2becc55940d674be52f58a856f0",
+        "revCount": 469,
         "type": "git",
         "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
       },
@@ -151,13 +175,12 @@
       }
     },
     "jensys-uk": {
-      "flake": false,
       "locked": {
-        "lastModified": 1791102797,
-        "narHash": "sha256-zgBym8I95sk7jkZOwNXB9W0lLsCpjW/OVS04TQiR+Ys=",
+        "lastModified": 1791231643,
+        "narHash": "sha256-OcDI0T/gev8bEhHCNfG8SZCY+60mukNtHGq1QbABdtw=",
         "ref": "refs/heads/main",
-        "rev": "c23d865cf14900b485206fbed37e7cbf398e389b",
-        "revCount": 6,
+        "rev": "5355bad70ecd1f21b1936c1a4467f412782881ff",
+        "revCount": 8,
         "type": "git",
         "url": "ssh://git@github-jensys-uk/dijitali/jensys-uk"
       },
@@ -167,13 +190,12 @@
       }
     },
     "jnkns-uk": {
-      "flake": false,
       "locked": {
-        "lastModified": 1791102551,
-        "narHash": "sha256-DRCLxJtlA2YzSGEmb3B8ypOiHgASxQRMbwkADg3IP2E=",
+        "lastModified": 1791231701,
+        "narHash": "sha256-sqp+VCjZfFlvC0l1uHOw5oOOIlSenFPCr3falIz+Avw=",
         "ref": "refs/heads/main",
-        "rev": "041237552ca7438be7c56357df59ca15df099a0b",
-        "revCount": 3,
+        "rev": "0ae06ae5393c4778fd26fa69433fac314b575411",
+        "revCount": 5,
         "type": "git",
         "url": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
       },
@@ -207,13 +229,12 @@
       }
     },
     "net-diagnostics": {
-      "flake": false,
       "locked": {
-        "lastModified": 1791102484,
-        "narHash": "sha256-kOM5rMo4a9jLWz+A4PrQTkTLfpnEPAgnCBtouZcgJPk=",
+        "lastModified": 1791231668,
+        "narHash": "sha256-7EqL8xVis9zrudjKZkUQri0c6IMB81yrgshJGi12anM=",
         "ref": "refs/heads/main",
-        "rev": "1594ef790e78eb5b79b55b3ca978c0a124b6236e",
-        "revCount": 3,
+        "rev": "9d7097e8c10ca83e3ad6b6ad42e312ff55e3179d",
+        "revCount": 5,
         "type": "git",
         "url": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics"
       },
