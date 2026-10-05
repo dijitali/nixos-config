@@ -100,15 +100,15 @@
       "locked": {
         "lastModified": 1791101787,
         "narHash": "sha256-OFNMhv2VRX69DvALzgA0GKwnRy+YRV+I2MlOQ/KmNP4=",
-        "owner": "dijitali",
-        "repo": "ieuan-co-uk",
+        "ref": "refs/heads/main",
         "rev": "0462e3e0f1e98e6804b703281fd1ad58c8dcc88e",
-        "type": "github"
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk"
       },
       "original": {
-        "owner": "dijitali",
-        "repo": "ieuan-co-uk",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk"
       }
     },
     "ieuan-net": {
@@ -116,15 +116,15 @@
       "locked": {
         "lastModified": 1791105447,
         "narHash": "sha256-9HFRlrTg5mDitzJFmXMMFwZCDlS1f7JTqaPC+P8O2/Q=",
-        "owner": "dijitali",
-        "repo": "ieuan-net",
+        "ref": "refs/heads/main",
         "rev": "6f1b565251cd5d44b8fde3a22526dcffa8538f97",
-        "type": "github"
+        "revCount": 467,
+        "type": "git",
+        "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
       },
       "original": {
-        "owner": "dijitali",
-        "repo": "ieuan-net",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
       }
     },
     "impermanence": {
@@ -155,15 +155,15 @@
       "locked": {
         "lastModified": 1791102797,
         "narHash": "sha256-zgBym8I95sk7jkZOwNXB9W0lLsCpjW/OVS04TQiR+Ys=",
-        "owner": "dijitali",
-        "repo": "jensys-uk",
+        "ref": "refs/heads/main",
         "rev": "c23d865cf14900b485206fbed37e7cbf398e389b",
-        "type": "github"
+        "revCount": 6,
+        "type": "git",
+        "url": "ssh://git@github-jensys-uk/dijitali/jensys-uk"
       },
       "original": {
-        "owner": "dijitali",
-        "repo": "jensys-uk",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github-jensys-uk/dijitali/jensys-uk"
       }
     },
     "jnkns-uk": {
@@ -171,15 +171,15 @@
       "locked": {
         "lastModified": 1791102551,
         "narHash": "sha256-DRCLxJtlA2YzSGEmb3B8ypOiHgASxQRMbwkADg3IP2E=",
-        "owner": "dijitali",
-        "repo": "jnkns-uk",
+        "ref": "refs/heads/main",
         "rev": "041237552ca7438be7c56357df59ca15df099a0b",
-        "type": "github"
+        "revCount": 3,
+        "type": "git",
+        "url": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
       },
       "original": {
-        "owner": "dijitali",
-        "repo": "jnkns-uk",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
       }
     },
     "lanzaboote": {
@@ -211,15 +211,15 @@
       "locked": {
         "lastModified": 1791102484,
         "narHash": "sha256-kOM5rMo4a9jLWz+A4PrQTkTLfpnEPAgnCBtouZcgJPk=",
-        "owner": "dijitali",
-        "repo": "net-diagnostics",
+        "ref": "refs/heads/main",
         "rev": "1594ef790e78eb5b79b55b3ca978c0a124b6236e",
-        "type": "github"
+        "revCount": 3,
+        "type": "git",
+        "url": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics"
       },
       "original": {
-        "owner": "dijitali",
-        "repo": "net-diagnostics",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics"
       }
     },
     "nix-formatter-pack": {

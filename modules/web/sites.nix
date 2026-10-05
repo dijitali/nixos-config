@@ -10,6 +10,11 @@
 # The one thing still pushed is ieuan-net's built site content
 # (`mise run deploy` rsyncs it into /var/www/public): building it needs a GPG
 # key and Spotify credentials, so it can't be a Nix build.
+#
+# The repos are private and fetched over SSH through per-repo host aliases
+# (git@github-<repo>, see flake.nix). On the server, root (auto-upgrade) uses a
+# read-only deploy key per repo, generated and registered by vps-config's
+# OpenTofu and installed at /nix/persist/secrets/deploy-keys/github-<repo>.
 {
   config,
   inputs,
@@ -99,4 +104,24 @@ in
     80
     443
   ];
+
+  # One block for all the site repos: `%n` is the alias as written in the
+  # input URL (github-<repo>), which names that repo's deploy key. Scoped to
+  # the local root user (`localuser`; `user` would match the remote login) so
+  # interactive users' own keys are unaffected. GitHub's host key is pinned
+  # (https://api.github.com/meta); with HostName set, known_hosts is checked
+  # against github.com.
+  programs.ssh = {
+    extraConfig = ''
+      Match localuser root host github-*
+        HostName github.com
+        User git
+        IdentityFile /nix/persist/secrets/deploy-keys/%n
+        IdentitiesOnly yes
+    '';
+    knownHosts.github = {
+      hostNames = [ "github.com" ];
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl";
+    };
+  };
 }

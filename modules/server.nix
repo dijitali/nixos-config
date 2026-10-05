@@ -127,11 +127,6 @@ in
       execWheelOnly = true;
     };
 
-    # Nix's GitHub token (see modules/nix.nix), written by nixos-anywhere at
-    # install time from vps-config's OpenTofu. Root-only; used by auto-upgrade
-    # to fetch the private site repos.
-    environment.etc."nix/access-tokens.conf".source = "/nix/persist/secrets/nix-access-tokens";
-
     # Deploys push the system closure over SSH as the admin user, which needs
     # to be trusted by the Nix daemon to add paths to the store.
     nix.settings.trusted-users = [ "@wheel" ];

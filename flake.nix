@@ -22,27 +22,30 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Site repos served by the web servers (modules/web/sites.nix). Private
-    # repos: Nix reads them with a read-only GitHub token from the access-tokens
-    # file included by modules/nix.nix. Source only, not evaluated as flakes.
+    # Site repos served by the web servers (modules/web/sites.nix). Source only,
+    # not evaluated as flakes. They are private, so they're fetched over SSH via
+    # per-repo host aliases (github-<repo>): one `Host github-*` ssh_config block
+    # maps them to github.com. Your own key works with that block (Home Manager
+    # adds it on the laptop); the servers use a read-only deploy key per repo,
+    # selected by the alias (modules/web/sites.nix).
     ieuan-net = {
-      url = "github:dijitali/ieuan-net";
+      url = "git+ssh://git@github-ieuan-net/dijitali/ieuan-net";
       flake = false;
     };
     ieuan-co-uk = {
-      url = "github:dijitali/ieuan-co-uk";
+      url = "git+ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk";
       flake = false;
     };
     jensys-uk = {
-      url = "github:dijitali/jensys-uk";
+      url = "git+ssh://git@github-jensys-uk/dijitali/jensys-uk";
       flake = false;
     };
     net-diagnostics = {
-      url = "github:dijitali/net-diagnostics";
+      url = "git+ssh://git@github-net-diagnostics/dijitali/net-diagnostics";
       flake = false;
     };
     jnkns-uk = {
-      url = "github:dijitali/jnkns-uk";
+      url = "git+ssh://git@github-jnkns-uk/dijitali/jnkns-uk";
       flake = false;
     };
 
