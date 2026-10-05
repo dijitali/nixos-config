@@ -4,7 +4,7 @@ NIXNAME ?= jenkonix-2
 # Remote server to deploy with `make deploy` (built here, activated over SSH).
 SERVER ?= jenkosrv-fsn1-3
 
-.PHONY: switch test boot deploy droid update check fmt
+.PHONY: switch test boot deploy droid update update-sites check fmt
 
 # Build and activate, making it the default boot entry.
 switch:
@@ -31,6 +31,13 @@ droid:
 # Bump flake inputs (nixpkgs, home-manager, nixos-hardware, nix-on-droid) in flake.lock.
 update:
 	nix flake update
+
+# Bump only the site repos served by $(SERVER) (its `web.sites`, which are
+# flake inputs of the same names) to their latest commits, leaving nixpkgs and
+# everything else pinned. Commit the lock and `make deploy` to roll them out.
+update-sites:
+	nix flake update $$(nix eval --raw ".#nixosConfigurations.$(SERVER).config.web.sites" \
+	  --apply 'sites: builtins.concatStringsSep " " (builtins.attrNames sites)')
 
 # Evaluate the flake and all checks.
 check:

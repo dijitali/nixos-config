@@ -83,6 +83,7 @@ make check     # nix flake check
 
 ```sh
 make update    # nix flake update  -> bumps flake.lock, commit the result
+make update-sites  # bump only the web server's site repos (web.sites)
 make switch
 ```
 
