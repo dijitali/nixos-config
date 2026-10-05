@@ -95,6 +95,38 @@
         "type": "github"
       }
     },
+    "ieuan-co-uk": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791101787,
+        "narHash": "sha256-OFNMhv2VRX69DvALzgA0GKwnRy+YRV+I2MlOQ/KmNP4=",
+        "owner": "dijitali",
+        "repo": "ieuan-co-uk",
+        "rev": "0462e3e0f1e98e6804b703281fd1ad58c8dcc88e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dijitali",
+        "repo": "ieuan-co-uk",
+        "type": "github"
+      }
+    },
+    "ieuan-net": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791105447,
+        "narHash": "sha256-9HFRlrTg5mDitzJFmXMMFwZCDlS1f7JTqaPC+P8O2/Q=",
+        "owner": "dijitali",
+        "repo": "ieuan-net",
+        "rev": "6f1b565251cd5d44b8fde3a22526dcffa8538f97",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dijitali",
+        "repo": "ieuan-net",
+        "type": "github"
+      }
+    },
     "impermanence": {
       "inputs": {
         "home-manager": [
@@ -115,6 +147,38 @@
       "original": {
         "owner": "nix-community",
         "repo": "impermanence",
+        "type": "github"
+      }
+    },
+    "jensys-uk": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791102797,
+        "narHash": "sha256-zgBym8I95sk7jkZOwNXB9W0lLsCpjW/OVS04TQiR+Ys=",
+        "owner": "dijitali",
+        "repo": "jensys-uk",
+        "rev": "c23d865cf14900b485206fbed37e7cbf398e389b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dijitali",
+        "repo": "jensys-uk",
+        "type": "github"
+      }
+    },
+    "jnkns-uk": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791102551,
+        "narHash": "sha256-DRCLxJtlA2YzSGEmb3B8ypOiHgASxQRMbwkADg3IP2E=",
+        "owner": "dijitali",
+        "repo": "jnkns-uk",
+        "rev": "041237552ca7438be7c56357df59ca15df099a0b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dijitali",
+        "repo": "jnkns-uk",
         "type": "github"
       }
     },
@@ -139,6 +203,22 @@
         "owner": "nix-community",
         "ref": "v1.1.0",
         "repo": "lanzaboote",
+        "type": "github"
+      }
+    },
+    "net-diagnostics": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791102484,
+        "narHash": "sha256-kOM5rMo4a9jLWz+A4PrQTkTLfpnEPAgnCBtouZcgJPk=",
+        "owner": "dijitali",
+        "repo": "net-diagnostics",
+        "rev": "1594ef790e78eb5b79b55b3ca978c0a124b6236e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dijitali",
+        "repo": "net-diagnostics",
         "type": "github"
       }
     },
@@ -356,8 +436,13 @@
       "inputs": {
         "disko": "disko",
         "home-manager": "home-manager",
+        "ieuan-co-uk": "ieuan-co-uk",
+        "ieuan-net": "ieuan-net",
         "impermanence": "impermanence",
+        "jensys-uk": "jensys-uk",
+        "jnkns-uk": "jnkns-uk",
         "lanzaboote": "lanzaboote",
+        "net-diagnostics": "net-diagnostics",
         "nix-on-droid": "nix-on-droid",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",

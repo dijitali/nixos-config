@@ -15,7 +15,7 @@
 
     ../../modules/server.nix
     ../../modules/impermanence.nix
-    ../../modules/web/ieuan-net.nix
+    ../../modules/web/sites.nix
     ../../modules/locale.nix
     ../../modules/nix.nix
   ];
@@ -41,12 +41,7 @@
       group = "caddy";
       mode = "0700";
     }
-    # Push-deployed sites: Caddy site files (installed by each site repo's
-    # deploy script, as root) and their content.
-    {
-      directory = "/etc/caddy/sites-enabled";
-      mode = "0755";
-    }
+    # ieuan-net's pushed site content (site configs come from Nix).
     {
       directory = "/var/www";
       mode = "0755";

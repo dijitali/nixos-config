@@ -22,6 +22,30 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Site repos served by the web servers (modules/web/sites.nix). Private
+    # repos: Nix reads them with a read-only GitHub token from the access-tokens
+    # file included by modules/nix.nix. Source only, not evaluated as flakes.
+    ieuan-net = {
+      url = "github:dijitali/ieuan-net";
+      flake = false;
+    };
+    ieuan-co-uk = {
+      url = "github:dijitali/ieuan-co-uk";
+      flake = false;
+    };
+    jensys-uk = {
+      url = "github:dijitali/jensys-uk";
+      flake = false;
+    };
+    net-diagnostics = {
+      url = "github:dijitali/net-diagnostics";
+      flake = false;
+    };
+    jnkns-uk = {
+      url = "github:dijitali/jnkns-uk";
+      flake = false;
+    };
+
     # Wipe-on-boot root for the cloud servers (modules/impermanence.nix). No
     # release tags upstream; the commit is pinned in flake.lock.
     impermanence = {
