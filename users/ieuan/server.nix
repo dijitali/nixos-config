@@ -29,6 +29,10 @@
     autosuggestions.enable = true;
     syntaxHighlighting.enable = true;
     histSize = 100000;
+    # In a directory of its own so an impermanent host can persist it: zsh
+    # rewrites the history by renaming a new file over it, which fails on a
+    # bind-mounted file.
+    histFile = "$HOME/.local/state/zsh/history";
     setOptions = [
       "EXTENDED_HISTORY"
       "HIST_EXPIRE_DUPS_FIRST"
