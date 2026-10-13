@@ -21,6 +21,32 @@
   };
 
   # zsh is the login shell above; enabling it system-wide installs the shell
-  # init so a login over SSH gets a working environment.
-  programs.zsh.enable = true;
+  # init so a login over SSH gets a working environment. There's no Home
+  # Manager here, so the interactive setup from ./home.nix is repeated in
+  # /etc/zshrc instead.
+  programs.zsh = {
+    enable = true;
+    autosuggestions.enable = true;
+    syntaxHighlighting.enable = true;
+    histSize = 100000;
+    setOptions = [
+      "EXTENDED_HISTORY"
+      "HIST_EXPIRE_DUPS_FIRST"
+      "HIST_FCNTL_LOCK"
+      "HIST_IGNORE_ALL_DUPS"
+      "HIST_IGNORE_SPACE"
+      "SHARE_HISTORY"
+    ];
+  };
+  programs.fzf = {
+    keybindings = true;
+    fuzzyCompletion = true;
+  };
+
+  # zsh runs its new-user wizard when ~ has no startup files. The settings
+  # above all live in /etc, so an empty ~/.zshrc is enough to skip it; `f`
+  # only creates it if missing, which on an impermanent root is every boot.
+  systemd.tmpfiles.rules = [
+    "f /home/ieuan/.zshrc 0644 ieuan users - # Configured system-wide in /etc/zshrc (nixos-config: users/ieuan/server.nix)."
+  ];
 }
