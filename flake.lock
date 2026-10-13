@@ -52,6 +52,26 @@
         "type": "github"
       }
     },
+    "flake-parts": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785627969,
+        "narHash": "sha256-4dtXQk/NMePegK/nWp5NSeuZKLATItOq61lpEvmXqGw=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "427bf4bd9435fdf21321c8cc628c24efc14c0f7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "gitignore": {
       "inputs": {
         "nixpkgs": [
@@ -95,6 +115,42 @@
         "type": "github"
       }
     },
+    "ieuan-co-uk": {
+      "locked": {
+        "lastModified": 1791231628,
+        "narHash": "sha256-/+3mDJYWbC6O9PAk5IGIhCj9IODHm/B7/q9JU6TdqJc=",
+        "ref": "refs/heads/main",
+        "rev": "6fcad11513612c7da8d5f603a960092582705d0c",
+        "revCount": 3,
+        "type": "git",
+        "url": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk"
+      }
+    },
+    "ieuan-net": {
+      "inputs": {
+        "flake-parts": "flake-parts",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791231612,
+        "narHash": "sha256-yRGdvX5UQgYHXMYP7+Ni0w83uWaUHmkO8ORrNMuB8HY=",
+        "ref": "refs/heads/main",
+        "rev": "fbaad0fce9b3a2becc55940d674be52f58a856f0",
+        "revCount": 469,
+        "type": "git",
+        "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
+      }
+    },
     "impermanence": {
       "inputs": {
         "home-manager": [
@@ -116,6 +172,36 @@
         "owner": "nix-community",
         "repo": "impermanence",
         "type": "github"
+      }
+    },
+    "jensys-uk": {
+      "locked": {
+        "lastModified": 1791231643,
+        "narHash": "sha256-OcDI0T/gev8bEhHCNfG8SZCY+60mukNtHGq1QbABdtw=",
+        "ref": "refs/heads/main",
+        "rev": "5355bad70ecd1f21b1936c1a4467f412782881ff",
+        "revCount": 8,
+        "type": "git",
+        "url": "ssh://git@github-jensys-uk/dijitali/jensys-uk"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-jensys-uk/dijitali/jensys-uk"
+      }
+    },
+    "jnkns-uk": {
+      "locked": {
+        "lastModified": 1791231701,
+        "narHash": "sha256-sqp+VCjZfFlvC0l1uHOw5oOOIlSenFPCr3falIz+Avw=",
+        "ref": "refs/heads/main",
+        "rev": "0ae06ae5393c4778fd26fa69433fac314b575411",
+        "revCount": 5,
+        "type": "git",
+        "url": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
       }
     },
     "lanzaboote": {
@@ -140,6 +226,21 @@
         "ref": "v1.1.0",
         "repo": "lanzaboote",
         "type": "github"
+      }
+    },
+    "net-diagnostics": {
+      "locked": {
+        "lastModified": 1791231668,
+        "narHash": "sha256-7EqL8xVis9zrudjKZkUQri0c6IMB81yrgshJGi12anM=",
+        "ref": "refs/heads/main",
+        "rev": "9d7097e8c10ca83e3ad6b6ad42e312ff55e3179d",
+        "revCount": 5,
+        "type": "git",
+        "url": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics"
       }
     },
     "nix-formatter-pack": {
@@ -356,8 +457,13 @@
       "inputs": {
         "disko": "disko",
         "home-manager": "home-manager",
+        "ieuan-co-uk": "ieuan-co-uk",
+        "ieuan-net": "ieuan-net",
         "impermanence": "impermanence",
+        "jensys-uk": "jensys-uk",
+        "jnkns-uk": "jnkns-uk",
         "lanzaboote": "lanzaboote",
+        "net-diagnostics": "net-diagnostics",
         "nix-on-droid": "nix-on-droid",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",

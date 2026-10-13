@@ -139,6 +139,12 @@
           hostname = "github.com";
           user = "git";
         };
+        # Per-repo aliases used by nixos-config's private site-repo inputs
+        # (git@github-<repo>); with your own key, they're just github.com.
+        "github-*" = {
+          hostname = "github.com";
+          user = "git";
+        };
         # Hetzner web server. Its host key is generated in vps-config's OpenTofu
         # and pinned in known_hosts under this name only. Applies when the
         # destination is the short name or its Tailscale FQDN; to connect by IP

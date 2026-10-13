@@ -29,7 +29,7 @@ Flake-based NixOS + Home Manager configuration.
 │   ├── secure-boot.nix       # UEFI Secure Boot via lanzaboote (docs/secure-boot.md)
 │   ├── server.nix            # Headless baseline: SSH, networkd, firewall, Tailscale, sudo
 │   ├── impermanence.nix      # Wipe-on-boot root; state on a /persist Hetzner volume
-│   ├── web/ieuan-net.nix     # Caddy for the ieuan.net sites
+│   ├── web/sites.nix         # Caddy + site configs from the site repos (flake inputs)
 │   ├── locale.nix            # Time zone + locale
 │   ├── packages.nix          # System programs + environment.systemPackages
 │   └── nix.nix               # Nix daemon, GC, flake auto-upgrade
@@ -83,6 +83,7 @@ make check     # nix flake check
 
 ```sh
 make update    # nix flake update  -> bumps flake.lock, commit the result
+make update-sites  # bump only the web server's site repos (web.sites)
 make switch
 ```
 
