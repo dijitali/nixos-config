@@ -93,6 +93,14 @@
     }
   ];
 
+  # Shell history (histFile in users/ieuan/server.nix).
+  environment.persistence."/persist".users.ieuan.directories = [
+    {
+      directory = ".local/state/zsh";
+      mode = "0700";
+    }
+  ];
+
   # GRUB rather than systemd-boot: Hetzner Cloud boots x86 VMs via legacy BIOS
   # unless UEFI is requested, and this combination (plus the EF02 partition in
   # disk-config.nix) works in both modes. disko supplies `devices`.
