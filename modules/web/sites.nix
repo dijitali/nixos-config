@@ -4,7 +4,8 @@
 # self-contained Caddyfile fragment (no relative imports) that refers to any
 # files of its own by store path. This module knows nothing about individual
 # sites: the host lists them in `web.sites`, and each repo's flake owns how its
-# config and files fit together.
+# config and files fit together. A site may also export `caddyTest`, checks of
+# its own behaviour run by the host's VM test (tests/, see README).
 #
 # The sites are written to the store as <name>.Caddyfile, imported by a small
 # top-level Caddyfile, and the whole thing is validated with `caddy adapt` at
@@ -35,7 +36,7 @@ let
   caddyfile = pkgs.writeText "Caddyfile" ''
     {
       # ACME account email, for certificate expiry/problem notices.
-      email ${cfg.acmeEmail}
+      email ${cfg.acmeEmail}${lib.optionalString cfg.localCerts "\n  local_certs"}
     }
     import ${sites}/*.Caddyfile
   '';
@@ -65,6 +66,15 @@ in
     acmeEmail = lib.mkOption {
       type = lib.types.str;
       description = "Email for the ACME account (certificate expiry/problem notices).";
+    };
+
+    localCerts = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Issue every certificate from Caddy's internal CA instead of ACME, for
+        test VMs that are not reachable at the sites' public names.
+      '';
     };
   };
 

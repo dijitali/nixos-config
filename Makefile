@@ -4,7 +4,7 @@ NIXNAME ?= jenkonix-2
 # Remote server to deploy with `make deploy` (built here, activated over SSH).
 SERVER ?= jenkosrv-fsn1-3
 
-.PHONY: switch test boot deploy droid update update-sites check fmt
+.PHONY: switch test boot deploy test-server droid update update-sites check fmt
 
 # Build and activate, making it the default boot entry.
 switch:
@@ -23,6 +23,10 @@ boot:
 # change after that. Needs passwordless sudo on the server (modules/server.nix).
 deploy:
 	nixos-rebuild switch --flake ".#$(SERVER)" --target-host "ieuan@$(SERVER)" --sudo
+
+# Boot the server config in VMs and check its sites (tests/jenkosrv-fsn1-3.nix).
+test-server:
+	nix build ".#checks.x86_64-linux.$(SERVER)" -L
 
 # Activate the Nix-on-Droid environment (run this on the Android device).
 droid:
