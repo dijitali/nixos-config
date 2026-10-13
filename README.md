@@ -138,8 +138,8 @@ server:
 - after a reboot of the tmpfs root, certificates and machine-id survive on
   `/persist`
 
-How each site behaves is tested in that site's own repo (see
-[Site tests](#site-tests)).
+How each site behaves is tested in that site's own repo, with its own VM test
+(`nix flake check` there).
 
 Run it before deploying a server change:
 
@@ -149,7 +149,7 @@ make test-server   # nix build .#checks.x86_64-linux.jenkosrv-fsn1-3 -L
 
 It takes about a minute once the server's closure is built. On failure the
 log ends with the failing subtest and assertion. Nix caches a passing result,
-so it only re-runs when the config, a site or the test changes (force it with
+so it only re-runs when the config, a locked site or the test changes (force it with
 `--rebuild`).
 
 **Requirements.** KVM (`/dev/kvm`) on the machine running it, and SSH access
@@ -162,34 +162,6 @@ Hetzner or the real internet: the metadata-service IPv6 unit, Tailscale,
 auto-upgrade, GRUB and the catch-all DHCP network. Caddy issues certificates
 from its internal CA (`web.localCerts`) instead of Let's Encrypt, so requests
 in the test don't verify them.
-
-### Site tests
-
-A site flake can export `caddyTest` next to `caddyConfig`: Python that the
-server test runs as a subtest named after the site, with these in scope:
-
-| Name | What it is |
-| --- | --- |
-| `server`, `client` | the two VMs ([test driver machine API](https://nixos.org/manual/nixos/stable/#sec-nixos-tests)) |
-| `server_ip`, `client_ip` | their addresses |
-| `get(url, *curl_args)` | `(status, redirect, headers)` for a request from the client, by name, to the server; header names are lower-cased |
-| `expect(url, status, redirect="")` | asserts a status and redirect target |
-
-For example:
-
-```python
-expect("https://example.org/old", 301, "https://example.org/new")
-status, _, headers = get("https://example.org/")
-assert headers["x-frame-options"] == "DENY", headers
-```
-
-To try a site change before it is merged and locked here, point the input at a
-local checkout:
-
-```sh
-nix build .#checks.x86_64-linux.jenkosrv-fsn1-3 -L \
-  --override-input <site> path:/path/to/<site>
-```
 
 ### Debugging interactively
 

@@ -2,11 +2,8 @@
 # Hetzner-, tailnet- and ACME-specific parts swapped out below) next to a
 # client machine. This file only checks the server itself: a clean boot, the
 # firewall, that Caddy serves every site host with a certificate, and that
-# state on /persist survives a reboot of the tmpfs root.
-#
-# How each site behaves is tested by its own repo: a site flake may export
-# `caddyTest`, Python run here as one subtest per site (see the helpers in
-# testScript for what it can use).
+# state on /persist survives a reboot of the tmpfs root. How each site behaves
+# is tested in that site's own repo.
 #
 #   nix build .#checks.x86_64-linux.jenkosrv-fsn1-3 -L   # or `make test-server`
 { inputs, pkgs }:
@@ -71,17 +68,11 @@ pkgs.testers.runNixOSTest {
     { nodes, ... }:
     let
       sites = nodes.server.web.sites;
-      siteTests = pkgs.writeText "site-tests.json" (
-        builtins.toJSON (
-          builtins.mapAttrs (_: site: site.caddyTest) (pkgs.lib.filterAttrs (_: site: site ? caddyTest) sites)
-        )
-      );
     in
     ''
       import json
 
       server_ip = "${nodes.server.networking.primaryIPAddress}"
-      client_ip = "${nodes.client.networking.primaryIPAddress}"
 
       def walk(node):
           """Every dict anywhere inside a JSON value."""
@@ -91,31 +82,6 @@ pkgs.testers.runNixOSTest {
           if isinstance(node, list):
               for item in node:
                   yield from walk(item)
-
-      # Helpers for the sites' caddyTest snippets, which also get `server`,
-      # `client`, `server_ip`, `client_ip` and `subtest`. Requests go from the
-      # client to the server by name (curl --resolve); certificates come from
-      # Caddy's internal CA, so they are not verified.
-      def get(url, *curl_args):
-          """(status, redirect target or "", lower-cased headers) for url."""
-          host = url.split("/")[2]
-          port = 443 if url.startswith("https:") else 80
-          args = " ".join(curl_args)
-          out = client.succeed(
-              f"curl -sk -o /dev/null -D - -w '%{{json}}' --resolve {host}:{port}:{server_ip} {args} '{url}'"
-          )
-          head, _, meta = out.rpartition("\r\n\r\n")
-          meta = json.loads(meta)
-          headers = {}
-          for line in head.splitlines()[1:]:
-              name, _, value = line.partition(":")
-              headers[name.strip().lower()] = value.strip()
-          return meta["http_code"], meta["redirect_url"] or "", headers
-
-      def expect(url, code, location=""):
-          """Assert url answers with this status (and redirect target)."""
-          got, loc, _ = get(url)
-          assert (got, loc) == (code, location), f"{url}: got {got} {loc!r}, want {code} {location!r}"
 
       start_all()
 
@@ -151,13 +117,10 @@ pkgs.testers.runNixOSTest {
               timeout=60,
           )
           for host in sorted(https_hosts):
-              code, _, _ = get(f"http://{host}/")
-              assert code < 500, f"http://{host}/: {code}"
-
-      site_tests = json.load(open("${siteTests}"))
-      for name, snippet in sorted(site_tests.items()):
-          with subtest(f"site: {name}"):
-              exec(snippet, dict(globals()))
+              code = client.succeed(
+                  f"curl -s -o /dev/null -w '%{{http_code}}' --resolve {host}:80:{server_ip} http://{host}/"
+              )
+              assert int(code) < 500, f"http://{host}/: {code}"
 
       with subtest("state on /persist survives a reboot"):
           machine_id = server.succeed("cat /etc/machine-id")
