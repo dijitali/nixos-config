@@ -38,7 +38,9 @@ Flake-based NixOS + Home Manager configuration.
 │       ├── nixos.nix         # System account (desktop)
 │       ├── server.nix        # System account (headless: SSH keys, wheel)
 │       └── home.nix          # Home Manager configuration
-└── Makefile                  # switch / test / boot / deploy / update / check / fmt
+├── tests/
+│   └── jenkosrv-fsn1-3.nix   # NixOS VM test of the web server (see Testing)
+└── Makefile                  # switch / test / boot / deploy / test-server / update / check / fmt
 ```
 
 Adding a new machine is a single `mkSystem` entry in `flake.nix` plus a
@@ -79,6 +81,11 @@ host with `make switch NIXNAME=<host>`.
 make check     # nix flake check
 ```
 
+`nix flake check` evaluates every configuration and also runs the VM tests
+under `checks` (see [Testing](#testing)), so it needs KVM and takes a minute or
+two. `make test` above is unrelated: it is `nixos-rebuild test` on this
+machine.
+
 ## Updating
 
 ```sh
@@ -105,13 +112,73 @@ filesystem is a tmpfs, so every boot starts from this flake; only
 (listed in `modules/impermanence.nix` and the host file) survive. After that:
 
 ```sh
+make test-server   # check the change in VMs first (see Testing)
 make deploy    # build here, activate over SSH (nixos-rebuild --target-host)
 ```
+
+`make deploy` ships this checkout as it is, branch and uncommitted changes
+included; the next nightly auto-upgrade returns the server to `main`.
 
 `modules/server.nix` enables passwordless sudo for `wheel` so this, and the
 `sudo systemctl reload caddy` in ieuan-net's deploy script, run without a
 prompt. The server also auto-upgrades from this flake on GitHub
 (`modules/nix.nix`), so pushing a new `flake.lock` updates it too.
+
+## Testing
+
+The server has a NixOS VM test, `tests/jenkosrv-fsn1-3.nix`, exposed as
+`checks.x86_64-linux.jenkosrv-fsn1-3`. It boots the real `jenkosrv-fsn1-3`
+config in a QEMU VM next to a client VM and checks:
+
+- the server boots with no failed units, and `/persist` is mounted
+- the firewall lets the client reach only SSH, HTTP and HTTPS
+- every site answers as in production: redirects, content, HSTS,
+  `ip.ieuan.net` echoing the client address, and the Home Assistant proxies
+  refusing connections without a client certificate
+- after a reboot of the tmpfs root, certificates, machine-id and pushed site
+  content survive on `/persist`
+
+Run it before deploying a server change:
+
+```sh
+make test-server   # nix build .#checks.x86_64-linux.jenkosrv-fsn1-3 -L
+```
+
+It takes about a minute once the server's closure is built. On failure the
+log ends with the failing subtest and assertion. Nix caches a passing result, so it only re-runs when the config or
+the test changes (force it with `--rebuild`).
+
+**Requirements.** KVM (`/dev/kvm`) on the machine running it, and SSH access
+to the private site repos, since the sites are flake inputs fetched over the
+`github-*` host aliases that Home Manager adds to `~/.ssh/config`. On a fresh
+machine, `make switch` first.
+
+**What differs from production.** The test switches off what only works on
+Hetzner or the real internet: the metadata-service IPv6 unit, Tailscale,
+auto-upgrade, GRUB and the catch-all DHCP network. Caddy issues certificates
+from its internal CA (`web.localCerts`) instead of Let's Encrypt, so the
+tests use `curl -k`. ieuan-net's pushed content is a one-line stand-in page.
+The webstats vhost and the Home Assistant upstreams (on the tailnet) are not
+exercised.
+
+**Debugging interactively.** Build the test driver and drive the VMs from its
+Python prompt:
+
+```sh
+nix build .#checks.x86_64-linux.jenkosrv-fsn1-3.driverInteractive
+./result/bin/nixos-test-driver
+>>> start_all()
+>>> server.succeed("systemctl status caddy")
+>>> server.shell_interact()   # root shell on the server VM
+>>> test_script()             # run the whole test script
+```
+
+If QEMU fails with a glibc version error, unset `LD_LIBRARY_PATH` in that
+shell first.
+
+**Adding checks.** Assertions are Python in `testScript`; `expect(url, code,
+location)` checks a status and redirect as seen from the client. A new site in
+`web.sites` should get at least one `expect` line.
 
 ## Android / Termux (Nix-on-Droid)
 
