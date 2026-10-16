@@ -15,6 +15,10 @@ in
     firefox.enable = true;
     # zsh is enabled here because it is a login shell (see users/ieuan).
     zsh.enable = true;
+    # Run unpatched, dynamically linked binaries (e.g. the PyPI wheels uv and
+    # pre-commit install, like ruff and uv itself). The documented fix:
+    # https://wiki.nixos.org/wiki/Python_quickstart_using_uv#Fix_with_nix-ld
+    nix-ld.enable = true;
     _1password.enable = true;
     _1password-gui = {
       enable = true;

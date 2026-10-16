@@ -119,6 +119,11 @@ in
       };
     };
 
+    # SSH passes the client's TERM through, and the laptop runs Ghostty
+    # (TERM=xterm-ghostty), which ncurses doesn't ship a terminfo entry for.
+    # Without it zsh can't look up the terminal's capabilities on login.
+    environment.systemPackages = [ pkgs.ghostty.terminfo ];
+
     # Key-only SSH and no other way in, so wheel does not need a password for
     # sudo. This is what lets `nixos-rebuild --target-host … --use-remote-sudo`
     # and ieuan-net's `sudo systemctl reload caddy` run non-interactively.
