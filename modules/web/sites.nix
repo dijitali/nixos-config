@@ -32,10 +32,21 @@ let
   # The admin endpoint stays at its localhost-only default: the unit's reload
   # (on config change, and any `systemctl reload caddy` after pushing content)
   # goes through it.
+  # Encrypted ClientHello: Caddy generates and rotates the keys (kept in its
+  # data dir) and publishes them in HTTPS DNS records via the DNS provider. The
+  # provider is set on `ech` only, not as the global `dns` option, so ACME
+  # keeps using the HTTP challenge.
+  echOptions = lib.optionalString (cfg.ech.publicName != null) ''
+    ech ${cfg.ech.publicName} {
+      dns ${cfg.ech.dnsProvider}
+    }
+  '';
+
   caddyfile = pkgs.writeText "Caddyfile" ''
     {
       # ACME account email, for certificate expiry/problem notices.
       email ${cfg.acmeEmail}
+    ${echOptions}
     }
     import ${sites}/*.Caddyfile
   '';
@@ -66,6 +77,40 @@ in
       type = lib.types.str;
       description = "Email for the ACME account (certificate expiry/problem notices).";
     };
+
+    ech = {
+      publicName = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "ech.example.net";
+        description = ''
+          Enable Encrypted ClientHello with this outer (public) name, which is
+          all an on-path observer sees in place of the real site name. It needs
+          its own A/AAAA records pointing here. Sites whose names are CNAMEs
+          are skipped, since an HTTPS record can't sit alongside a CNAME.
+        '';
+      };
+
+      dnsProvider = lib.mkOption {
+        type = lib.types.str;
+        example = "cloudflare {env.CLOUDFLARE_API_TOKEN}";
+        description = ''
+          Caddyfile DNS provider (module name and arguments) used to publish the
+          ECH configs. The module must be compiled into services.caddy.package;
+          reference credentials with {env.*} placeholders, never inline.
+        '';
+      };
+
+      environmentFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        example = "/run/secrets/caddy.env";
+        description = ''
+          Path to an env file (outside the Nix store) holding the credentials
+          that dnsProvider's {env.*} placeholders read.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf (cfg.sites != { }) {
@@ -73,6 +118,9 @@ in
       enable = true;
       adapter = "caddyfile";
       configFile = validated;
+      # The DNS plugin rejects an empty token at startup, so with ECH enabled
+      # this file must exist before Caddy (re)starts.
+      environmentFile = cfg.ech.environmentFile;
     };
 
     # Caddy's data dir holds ACME account and certificate keys. systemd
