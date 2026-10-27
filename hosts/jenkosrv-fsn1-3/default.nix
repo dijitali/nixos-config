@@ -23,6 +23,7 @@
     ../../modules/web/sites.nix
     ../../modules/locale.nix
     ../../modules/nix.nix
+    ../../modules/vuln-scan
   ];
 
   networking.hostName = "jenkosrv-fsn1-3";
@@ -69,6 +70,18 @@
             old.installCheckPhase;
       });
 
+  # Weekly vulnerability report by email (modules/vuln-scan). The Fastmail app
+  # password is written by vps-config's install script.
+  security.vulnScan = {
+    enable = true;
+    mailTo = "hi@ieuan.net";
+    smtp.passwordFile = "/nix/persist/secrets/smtp-password";
+    goIgnore = {
+      "GO-2026-5932" =
+        "Deprecation notice for x/crypto/openpgp (linked by Caddy and Tailscale) with no fixed version; nothing to upgrade to.";
+    };
+  };
+
   # ieuan-net's built content is pushed, not built by Nix (it needs a GPG key
   # and Spotify credentials): `mise run deploy` rsyncs it into /var/www/public
   # as ieuan, keeping replaced files under /var/backups/ieuan-net.
@@ -88,6 +101,11 @@
       group = "caddy";
       mode = "0700";
     }
+    # What the last vulnerability report listed, so the next one can say
+    # what's new and what's resolved; and vulnix's NVD cache (~200 MB, slow
+    # to rebuild).
+    "/var/lib/vuln-scan"
+    "/var/cache/vuln-scan"
     # ieuan-net's pushed site content (site configs come from Nix).
     {
       directory = "/var/www";
