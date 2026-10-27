@@ -120,6 +120,25 @@ make deploy    # build here, activate over SSH (nixos-rebuild --target-host)
 prompt. The server also auto-upgrades from this flake on GitHub
 (`modules/nix.nix`), so pushing a new `flake.lock` updates it too.
 
+### Vulnerability reports
+
+Every Monday the server scans what it is actually running and emails
+hi@ieuan.net (`modules/vuln-scan`): vulnix checks the runtime closure against
+NVD, and govulncheck checks every Go binary against the Go vulnerability
+database (it catches what NVD hasn't categorised yet, and dependency modules
+compiled into a binary). Clean weeks send nothing; a failed scan sends its
+log. Reports never go into this repo, which is public.
+
+Triage false positives into `modules/vuln-scan/vulnix-whitelist.toml` (per
+package and CVE, with the reason) or `security.vulnScan.goIgnore` in the host
+file. To run a scan now: `sudo systemctl start vuln-scan` on the server.
+
+The scan mails through Fastmail with an app password in
+`/nix/persist/secrets/smtp-password` (root, 0400), written at install time
+by vps-config. vulnix needs the system's `.drv` files, which exist once an
+auto-upgrade has evaluated the flake on the server; right after a
+`make deploy` the report says vulnix couldn't run.
+
 ## Android / Termux (Nix-on-Droid)
 
 The flake also exposes `nixOnDroidConfigurations.default` for a phone running
