@@ -91,6 +91,13 @@ Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
 GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
 
+Renovate (`renovate.json`, run from vps-config's workflow) opens those bumps
+as PRs: one weekly "flake inputs" PR for the branch-tracking inputs, and one
+per release for the tag-pinned ones (disko, lanzaboote). Merging a PR is the
+deploy, since the nightly auto-upgrade builds `main`. The private site repos
+are left to `make update-sites`: they are fetched over SSH aliases Renovate
+doesn't have, which is also why it never does a whole-lock update.
+
 ## Servers
 
 `jenkosrv-fsn1-3` is a Hetzner Cloud VM. Its first install is done by

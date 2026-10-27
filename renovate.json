@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Europe/London",
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "packageRules": [
+    {
+      "description": "Private site repos, fetched over the github-<repo> SSH aliases: bump them with `make update-sites`. (Also why lockFileMaintenance is off: a whole-lock update fetches them; per-input updates don't.)",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["ieuan-net", "ieuan-co-uk", "jensys-uk", "net-diagnostics", "jnkns-uk"],
+      "enabled": false
+    },
+    {
+      "description": "One weekly PR for the branch-tracking inputs. Merging it is the deploy: the nightly auto-upgrade builds main.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["nixpkgs", "nixpkgs-unstable", "home-manager", "nixos-hardware", "impermanence", "nix-on-droid"],
+      "groupName": "flake inputs",
+      "schedule": ["before 6am on monday"],
+      "prBodyNotes": [
+        "Before merging: `make test-server`, and if Caddy's version moved, update the `withPlugins` hash in `hosts/jenkosrv-fsn1-3` (nix prints the one it got). Merging deploys it to the server at the next auto-upgrade."
+      ]
+    },
+    {
+      "description": "Pinned to release tags on purpose (see flake.nix): one PR per release, never grouped.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["disko", "lanzaboote"],
+      "prBodyNotes": ["Pinned deliberately: read the release notes before merging."]
+    }
+  ]
+}
