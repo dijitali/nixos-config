@@ -1,5 +1,6 @@
 # Weekly vulnerability scan of the running system, mailed when anything is
-# open, newly resolved, or the scan itself failed (see vuln-scan.py). Findings
+# open, newly resolved, or the scan itself failed (see vuln-scan.py); failed
+# auto-upgrades are mailed too. Findings
 # go to email, never to this repo: it is public, and an open-findings list for
 # a live server doesn't belong in it.
 #
@@ -32,12 +33,13 @@ let
     }
   );
 
-  # Mails the tail of the scan's journal when the scan unit itself fails.
-  failureMail = pkgs.writeShellScript "vuln-scan-failed" ''
+  # Mails the tail of a failed unit's journal; the unit is the argument
+  # (mail-unit-failure@<unit>.service, used through onFailure).
+  failureMail = pkgs.writeShellScript "mail-unit-failure" ''
     {
-      printf 'From: %s\nTo: %s\nSubject: [%s] vulnerability scan failed\n\n' \
-        ${lib.escapeShellArg cfg.mailFrom} ${lib.escapeShellArg cfg.mailTo} ${config.networking.hostName}
-      ${config.systemd.package}/bin/journalctl --unit vuln-scan.service --lines 40 --no-pager
+      printf 'From: %s\nTo: %s\nSubject: [%s] %s failed\n\n' \
+        ${lib.escapeShellArg cfg.mailFrom} ${lib.escapeShellArg cfg.mailTo} ${config.networking.hostName} "$1"
+      ${config.systemd.package}/bin/journalctl --unit "$1" --lines 60 --no-pager
     } | ${pkgs.msmtp}/bin/msmtp --read-recipients
   '';
 in
@@ -125,7 +127,7 @@ in
         "nixos-upgrade.service"
       ];
       wants = [ "network-online.target" ];
-      onFailure = [ "vuln-scan-failed.service" ];
+      onFailure = [ "mail-unit-failure@vuln-scan.service" ];
       path = [
         pkgs.vulnix
         pkgs.govulncheck
@@ -156,13 +158,20 @@ in
       };
     };
 
-    systemd.services.vuln-scan-failed = {
-      description = "Mail that the vulnerability scan failed";
+    systemd.services."mail-unit-failure@" = {
+      description = "Mail that %i failed";
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = failureMail;
+        ExecStart = "${failureMail} %i";
       };
     };
+
+    # A failed auto-upgrade leaves the server on its old generation without a
+    # word, e.g. when a nixpkgs bump changed Caddy's withPlugins hash and
+    # scripts/update-caddy-hash.sh didn't run. Mail those too.
+    systemd.services.nixos-upgrade.onFailure = lib.mkIf config.system.autoUpgrade.enable [
+      "mail-unit-failure@nixos-upgrade.service"
+    ];
 
     systemd.timers.vuln-scan = {
       wantedBy = [ "timers.target" ];

@@ -98,6 +98,21 @@ deploy, since the nightly auto-upgrade builds `main`. The private site repos
 are left to `make update-sites`: they are fetched over SSH aliases Renovate
 doesn't have, which is also why it never does a whole-lock update.
 
+Caddy's plugins (the `withPlugins` list in `hosts/jenkosrv-fsn1-3`) get a
+weekly "Caddy plugins" PR too. Both a plugin bump and a nixpkgs bump that
+moves Caddy change `withPlugins`' vendor hash, so on those PRs Renovate runs
+`scripts/update-caddy-hash.sh`, which builds just the vendored source and
+writes in the hash from the mismatch error. After a `make update` by hand,
+run it yourself:
+
+```sh
+scripts/update-caddy-hash.sh .#nixosConfigurations.jenkosrv-fsn1-3.config.services.caddy.package hosts/jenkosrv-fsn1-3/default.nix
+```
+
+If a wrong hash reaches `main` anyway, the server's auto-upgrade fails, the
+server stays on its current generation, and the failure is mailed (see
+Vulnerability reports).
+
 ## Servers
 
 `jenkosrv-fsn1-3` is a Hetzner Cloud VM. Its first install is done by
