@@ -6,6 +6,7 @@
 {
   inputs,
   modulesPath,
+  pkgs,
   ...
 }:
 
@@ -22,6 +23,7 @@
     ../../modules/web/sites.nix
     ../../modules/locale.nix
     ../../modules/nix.nix
+    ../../modules/vuln-scan
   ];
 
   networking.hostName = "jenkosrv-fsn1-3";
@@ -47,6 +49,39 @@
       ;
   };
 
+  # Caddy 2.11.7 links golang.org/x/net v0.56.0, whose http2 server has
+  # flow-control and HPACK advisories (GO-2026-6612/CVE-2026-78663 among them;
+  # fixed in v0.60.0, the html ones in v0.62.0). Requiring the http2 package,
+  # which Caddy imports anyway, raises the whole module through Go's minimum
+  # version selection; it isn't a plugin. withPlugins' install check expects
+  # every entry to be a module in `caddy build-info`, so it is told to look for
+  # the x/net module at that version instead, which also proves the bump took.
+  # The hash covers the Caddy version too (on a mismatch, nix prints the hash
+  # it got; Renovate rewrites it with scripts/update-caddy-hash.sh). Drop all
+  # of this once Caddy itself requires x/net v0.62.0.
+  services.caddy.package =
+    (pkgs.caddy.withPlugins {
+      plugins = [ "golang.org/x/net/http2@v0.62.0" ];
+      hash = "sha256-3Re2885iIMxiYfI/+DcR3XOzN9ZJszzlfwJINNvM0iM=";
+    }).overrideAttrs
+      (old: {
+        installCheckPhase =
+          builtins.replaceStrings [ "golang.org/x/net/http2@v0.62.0" ] [ "golang.org/x/net@v0.62.0" ]
+            old.installCheckPhase;
+      });
+
+  # Weekly vulnerability report by email (modules/vuln-scan). The Fastmail app
+  # password is written by vps-config's install script.
+  security.vulnScan = {
+    enable = true;
+    mailTo = "hi@ieuan.net";
+    smtp.passwordFile = "/nix/persist/secrets/smtp-password";
+    goIgnore = {
+      "GO-2026-5932" =
+        "Deprecation notice for x/crypto/openpgp (linked by Caddy and Tailscale) with no fixed version; nothing to upgrade to.";
+    };
+  };
+
   # ieuan-net's built content is pushed, not built by Nix (it needs a GPG key
   # and Spotify credentials): `mise run deploy` rsyncs it into /var/www/public
   # as ieuan, keeping replaced files under /var/backups/ieuan-net.
@@ -66,6 +101,11 @@
       group = "caddy";
       mode = "0700";
     }
+    # What the last vulnerability report listed, so the next one can say
+    # what's new and what's resolved; and vulnix's NVD cache (~200 MB, slow
+    # to rebuild).
+    "/var/lib/vuln-scan"
+    "/var/cache/vuln-scan"
     # ieuan-net's pushed site content (site configs come from Nix).
     {
       directory = "/var/www";

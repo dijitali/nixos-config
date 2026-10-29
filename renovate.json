@@ -1,0 +1,67 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Europe/London",
+  "nix": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": false
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Go modules in caddy.withPlugins lists (\"<module>@<version>\"). The x/net/http2 entry is a package, so its version is looked up on the golang.org/x/net module.",
+      "managerFilePatterns": ["/^hosts/.+\\.nix$/"],
+      "matchStrings": ["\"(?<depName>[a-z0-9.-]+\\.[a-z]+/[^@\"\\s]+)@(?<currentValue>v[^\"\\s]+)\""],
+      "datasourceTemplate": "go",
+      "packageNameTemplate": "{{{replace '/http2$' '' depName}}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Private site repos, fetched over the github-<repo> SSH aliases: bump them with `make update-sites`. (Also why lockFileMaintenance is off: a whole-lock update fetches them; per-input updates don't.)",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["ieuan-net", "ieuan-co-uk", "jensys-uk", "net-diagnostics", "jnkns-uk"],
+      "enabled": false
+    },
+    {
+      "description": "One weekly PR for the branch-tracking inputs. Merging it is the deploy: the nightly auto-upgrade builds main.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["nixpkgs", "nixpkgs-unstable", "home-manager", "nixos-hardware", "impermanence", "nix-on-droid"],
+      "groupName": "flake inputs",
+      "schedule": ["before 6am on monday"],
+      "prBodyNotes": [
+        "Before merging: `make test-server`. Merging deploys it to the server at the next auto-upgrade."
+      ]
+    },
+    {
+      "description": "Pinned to release tags on purpose (see flake.nix): one PR per release, never grouped.",
+      "matchManagers": ["nix"],
+      "matchDepNames": ["disko", "lanzaboote"],
+      "prBodyNotes": ["Pinned deliberately: read the release notes before merging."]
+    },
+    {
+      "description": "Caddy's plugins, together, on the same weekly schedule.",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["go"],
+      "groupName": "Caddy plugins",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "A nixpkgs bump (new Caddy) or a plugin bump changes withPlugins' vendor hash; rewrite it on the PR branch (scripts/update-caddy-hash.sh).",
+      "matchUpdateTypes": ["major", "minor", "patch", "digest", "pin", "pinDigest"],
+      "matchDepNames": ["nixpkgs", "github.com/**", "golang.org/**"],
+      "postUpgradeTasks": {
+        "commands": [
+          "scripts/update-caddy-hash.sh .#nixosConfigurations.jenkosrv-fsn1-3.config.services.caddy.package hosts/jenkosrv-fsn1-3/default.nix"
+        ],
+        "fileFilters": ["hosts/jenkosrv-fsn1-3/default.nix"],
+        "executionMode": "branch",
+        "installTools": {
+          "nix": {}
+        }
+      }
+    }
+  ]
+}

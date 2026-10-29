@@ -91,6 +91,28 @@ Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
 GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
 
+Renovate (`renovate.json`, run from vps-config's workflow) opens those bumps
+as PRs: one weekly "flake inputs" PR for the branch-tracking inputs, and one
+per release for the tag-pinned ones (disko, lanzaboote). Merging a PR is the
+deploy, since the nightly auto-upgrade builds `main`. The private site repos
+are left to `make update-sites`: they are fetched over SSH aliases Renovate
+doesn't have, which is also why it never does a whole-lock update.
+
+Caddy's plugins (the `withPlugins` list in `hosts/jenkosrv-fsn1-3`) get a
+weekly "Caddy plugins" PR too. Both a plugin bump and a nixpkgs bump that
+moves Caddy change `withPlugins`' vendor hash, so on those PRs Renovate runs
+`scripts/update-caddy-hash.sh`, which builds just the vendored source and
+writes in the hash from the mismatch error. After a `make update` by hand,
+run it yourself:
+
+```sh
+scripts/update-caddy-hash.sh .#nixosConfigurations.jenkosrv-fsn1-3.config.services.caddy.package hosts/jenkosrv-fsn1-3/default.nix
+```
+
+If a wrong hash reaches `main` anyway, the server's auto-upgrade fails, the
+server stays on its current generation, and the failure is mailed (see
+Vulnerability reports).
+
 ## Servers
 
 `jenkosrv-fsn1-3` is a Hetzner Cloud VM. Its first install is done by
@@ -112,6 +134,25 @@ make deploy    # build here, activate over SSH (nixos-rebuild --target-host)
 `sudo systemctl reload caddy` in ieuan-net's deploy script, run without a
 prompt. The server also auto-upgrades from this flake on GitHub
 (`modules/nix.nix`), so pushing a new `flake.lock` updates it too.
+
+### Vulnerability reports
+
+Every Monday the server scans what it is actually running and emails
+hi@ieuan.net (`modules/vuln-scan`): vulnix checks the runtime closure against
+NVD, and govulncheck checks every Go binary against the Go vulnerability
+database (it catches what NVD hasn't categorised yet, and dependency modules
+compiled into a binary). Clean weeks send nothing; a failed scan sends its
+log. Reports never go into this repo, which is public.
+
+Triage false positives into `modules/vuln-scan/vulnix-whitelist.toml` (per
+package and CVE, with the reason) or `security.vulnScan.goIgnore` in the host
+file. To run a scan now: `sudo systemctl start vuln-scan` on the server.
+
+The scan mails through Fastmail with an app password in
+`/nix/persist/secrets/smtp-password` (root, 0400), written at install time
+by vps-config. vulnix needs the system's `.drv` files, which exist once an
+auto-upgrade has evaluated the flake on the server; right after a
+`make deploy` the report says vulnix couldn't run.
 
 ## Android / Termux (Nix-on-Droid)
 
