@@ -49,12 +49,26 @@
   };
 
   # ieuan-net's access_log snippet uses `format transform`, from the
-  # transform-encoder plugin. Same plugin pin as ieuan-net/flake.nix; the hash
-  # differs because it also covers the Caddy version (on a mismatch, nix prints
-  # the hash it got).
+  # transform-encoder plugin (same pin as ieuan-net/flake.nix). caddy-dns/
+  # cloudflare publishes the ECH configs below. The hash covers the Caddy
+  # version and every plugin, so it differs from ieuan-net's (on a mismatch,
+  # nix prints the hash it got).
   services.caddy.package = pkgs.caddy.withPlugins {
-    plugins = [ "github.com/caddyserver/transform-encoder@v0.0.0-20260423033309-ba4124974830" ];
-    hash = "sha256-EACMG870NkglP9fQBQR4/IOWsT+uqId02Di6BfVFfo0=";
+    plugins = [
+      "github.com/caddyserver/transform-encoder@v0.0.0-20260423033309-ba4124974830"
+      "github.com/caddy-dns/cloudflare@v0.2.4"
+    ];
+    hash = "sha256-hWNLweb0wPIxZs+AYJl0S2T6o23BSVhgo4WJsygC3d4=";
+  };
+
+  # Encrypted ClientHello for every site: ech.ieuan.net is the only name an
+  # on-path observer sees. The Cloudflare token (scoped to DNS edits on the
+  # site zones) is written by vps-config's install script; never put it here,
+  # this repo is public.
+  web.ech = {
+    publicName = "ech.ieuan.net";
+    dnsProvider = "cloudflare {env.CLOUDFLARE_API_TOKEN}";
+    environmentFile = "/nix/persist/secrets/caddy.env";
   };
 
   # ieuan-net's built content is pushed, not built by Nix (it needs a GPG key
