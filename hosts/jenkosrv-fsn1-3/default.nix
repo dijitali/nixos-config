@@ -54,7 +54,7 @@
   # the hash it got).
   services.caddy.package = pkgs.caddy.withPlugins {
     plugins = [ "github.com/caddyserver/transform-encoder@v0.0.0-20260423033309-ba4124974830" ];
-    hash = "sha256-EACMG870NkglP9fQBQR4/IOWsT+uqId02Di6BfVFfo0=";
+    hash = "sha256-MHAiZieXie854XGOlK+jXT0WlFBDJ90Vv4+A9gFg3QI=";
   };
 
   # ieuan-net's built content is pushed, not built by Nix (it needs a GPG key
