@@ -138,11 +138,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792191436,
-        "narHash": "sha256-8OlnmEcEkBiD7C/p7YHyQncTDn2nXNY1L6VNabC01oY=",
+        "lastModified": 1793311159,
+        "narHash": "sha256-qvKuRmwxsXvrRqXvbgaqY3zeRmCeMV/yi/iFdbdHLkY=",
         "ref": "refs/heads/main",
-        "rev": "cbd304b9907ba52e58cf794769d19c7bbe541998",
-        "revCount": 493,
+        "rev": "bec7e9cad5b148b6a8605e2f4cbc50a9cf6fd68c",
+        "revCount": 494,
         "type": "git",
         "url": "ssh://git@github-ieuan-net/dijitali/ieuan-net"
       },
