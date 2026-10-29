@@ -6,7 +6,6 @@
 {
   inputs,
   modulesPath,
-  pkgs,
   ...
 }:
 
@@ -48,26 +47,13 @@
       ;
   };
 
-  # ieuan-net's access_log snippet uses `format transform`, from the
-  # transform-encoder plugin. Same plugin pin as ieuan-net/flake.nix; the hash
-  # differs because it also covers the Caddy version (on a mismatch, nix prints
-  # the hash it got).
-  services.caddy.package = pkgs.caddy.withPlugins {
-    plugins = [ "github.com/caddyserver/transform-encoder@v0.0.0-20260423033309-ba4124974830" ];
-    hash = "sha256-MHAiZieXie854XGOlK+jXT0WlFBDJ90Vv4+A9gFg3QI=";
-  };
-
   # ieuan-net's built content is pushed, not built by Nix (it needs a GPG key
   # and Spotify credentials): `mise run deploy` rsyncs it into /var/www/public
-  # as ieuan, keeping replaced files under /var/backups/ieuan-net. Its access
-  # log goes to /run/access (tmpfs), as on the Ubuntu server; the Caddy unit
-  # is sandboxed, so that path is opened up explicitly.
+  # as ieuan, keeping replaced files under /var/backups/ieuan-net.
   systemd.tmpfiles.rules = [
     "d /var/www/public 0755 ieuan users -"
     "d /var/backups/ieuan-net 0755 ieuan users -"
-    "d /run/access 0750 caddy caddy -"
   ];
-  systemd.services.caddy.serviceConfig.ReadWritePaths = [ "/run/access" ];
 
   # State that must survive the wipe-on-boot root, on the /persist volume (see
   # modules/impermanence.nix for the baseline list).
