@@ -13,7 +13,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    # Its nixpkgs input only serves its own checks; following ours also keeps
+    # the root nixpkgs at node "nixpkgs" in flake.lock, which Renovate's nix
+    # manager needs (it matches root inputs to lock nodes by name).
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Declarative disk partitioning, used by nixos-anywhere to install the
     # cloud servers (hosts/jenkosrv-*). Pinned to a release tag; bump deliberately.
