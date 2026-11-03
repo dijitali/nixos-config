@@ -35,7 +35,7 @@ let
   caddyfile = pkgs.writeText "Caddyfile" ''
     {
       # ACME account email, for certificate expiry/problem notices.
-      email ${cfg.acmeEmail}
+      email ${cfg.acmeEmail}${lib.optionalString cfg.localCerts "\n  local_certs"}
     }
     import ${sites}/*.Caddyfile
   '';
@@ -65,6 +65,15 @@ in
     acmeEmail = lib.mkOption {
       type = lib.types.str;
       description = "Email for the ACME account (certificate expiry/problem notices).";
+    };
+
+    localCerts = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Issue every certificate from Caddy's internal CA instead of ACME, for
+        test VMs that are not reachable at the sites' public names.
+      '';
     };
   };
 

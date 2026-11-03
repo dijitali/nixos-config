@@ -89,6 +89,12 @@
         headless = true;
       };
 
+      # VM tests, run by `nix flake check` (needs KVM).
+      checks.x86_64-linux.jenkosrv-fsn1-3 = import ./tests/jenkosrv-fsn1-3.nix {
+        inherit inputs;
+        pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+      };
+
       # Android / Termux environment, activated on-device with
       # `nix-on-droid switch --flake .#default`.
       nixOnDroidConfigurations.default = inputs.nix-on-droid.lib.nixOnDroidConfiguration {
