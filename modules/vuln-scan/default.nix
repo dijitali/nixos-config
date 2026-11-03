@@ -63,7 +63,7 @@ in
       host = lib.mkOption {
         type = lib.types.str;
         default = "smtp.fastmail.com";
-        description = "SMTP submission server (implicit TLS on port 465).";
+        description = "SMTP submission server (STARTTLS on port 587).";
       };
       user = lib.mkOption {
         type = lib.types.str;
@@ -112,9 +112,13 @@ in
       accounts.default = {
         inherit (cfg.smtp) host user;
         from = cfg.mailFrom;
-        port = 465;
+        # 587 with STARTTLS, not implicit TLS on 465: Hetzner Cloud blocks
+        # outbound 25 and 465 by default, and the connection just hangs.
+        port = 587;
         tls = true;
-        tls_starttls = false;
+        tls_starttls = true;
+        # Give up on an unreachable server instead of hanging the unit.
+        timeout = 30;
         auth = true;
         passwordeval = "${pkgs.coreutils}/bin/cat ${cfg.smtp.passwordFile}";
       };
