@@ -1,0 +1,39 @@
+# vulnix findings triaged as not affecting this system (modules/vuln-scan).
+#
+# One section per package, listing only the CVEs checked; any other CVE against
+# the same package is still reported. vulnix matches NVD CPE version ranges
+# against package names and versions, so it misses nixpkgs' own patches and
+# confuses unrelated projects that share a name. Give each entry the reason, and
+# an `until` date when it is "real but not worth acting on yet", so it comes
+# back for another look.
+
+["glibc"]
+cve = [
+  "CVE-2025-15281",
+  "CVE-2026-0861",
+  "CVE-2026-0915",
+  "CVE-2026-4046",
+  "CVE-2026-4437",
+  "CVE-2026-5435",
+  "CVE-2026-5450",
+  "CVE-2026-5928",
+]
+comment = "Fixed in nixpkgs' release/2.42/master backport (pkgs/development/libraries/glibc/2.42-master.patch); vulnix only sees 2.42-100."
+
+["perl"]
+cve = ["CVE-2026-8376", "CVE-2026-13221", "CVE-2026-57432"]
+comment = "Fixed in 5.42.3 (NVD: 'from 5.41.0 before 5.42.3-RC1'); the CPE range is wider than the advisory."
+
+["zlib"]
+cve = ["CVE-2026-27820"]
+comment = "Ruby's zlib gem (Zlib::GzipReader), not the C library."
+
+["sqlite"]
+cve = ["CVE-2026-11822", "CVE-2026-11824"]
+comment = "FTS5 bugs triggered by a crafted database file; nothing on the server opens untrusted SQLite files. Fixed in 3.53.2."
+until = "2027-01-31"
+
+["fzf"]
+cve = ["CVE-2026-53432", "CVE-2026-53433"]
+comment = "Crash on multi-megabyte input lines in an interactive tool. Fixed in 0.73.1."
+until = "2027-01-31"
