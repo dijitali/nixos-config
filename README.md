@@ -98,12 +98,16 @@ Auto-upgrade is enabled (`modules/nix.nix`) and rebuilds from the flake on
 GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
 
-Renovate (`renovate.json`, run from vps-config's workflow) opens those bumps
-as one weekly lock maintenance PR: `nix flake update` of every input, the site
-repos included, so a site's Caddy change ships with it. Merging a PR is the
-deploy, since the nightly auto-upgrade builds `main`. Renovate reaches the
-private site repos through git `insteadOf` rules that map the `github-<repo>`
-SSH aliases to HTTPS with a read-only token; the lock keeps the SSH URLs. Its
+Renovate (`renovate.json`, run by `.github/workflows/renovate.yml`) opens
+those bumps as one weekly lock maintenance PR: `nix flake update` of every
+input, the site repos included, so whatever a site has merged (its own
+Renovate PRs, a Caddy change) ships with it. Merging a PR is the deploy, since
+the nightly auto-upgrade builds `main`. The workflow runs with its
+`GITHUB_TOKEN` and reaches the private site repos through git `insteadOf`
+rules that map the `github-<repo>` SSH aliases to HTTPS with the
+`RENOVATE_SITES_TOKEN` secret (Contents: read on the five site repos); the
+lock keeps the SSH URLs. It needs Settings > Actions > General > "Allow GitHub
+Actions to create and approve pull requests". Its
 nix manager can't bump one input at a time unless `flake.nix` pins a `rev`, so
 tag-pinned inputs (disko, lanzaboote) still move only when you change the tag.
 `make update-sites` remains for shipping a site change before the weekly PR.

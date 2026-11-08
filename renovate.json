@@ -5,12 +5,13 @@
   "nix": {
     "enabled": true
   },
+  "github-actions": {
+    "enabled": false
+  },
   "lockFileMaintenance": {
     "enabled": true,
-    "description": "Renovate's nix manager refreshes a branch- or tag-tracking input only through a whole-lock `nix flake update` (per-input PRs need a rev pinned in flake.nix). The private site inputs are fetched through git insteadOf rules that vps-config's workflow sets up.",
-    "schedule": ["before 6am on monday"],
-    "prBodyNotes": [
-      "This is `nix flake update` of every input, the site repos included, so their Caddy configs ship with it. Before merging: `make test-server`. Merging deploys it: the nightly auto-upgrade builds main."
-    ]
+    "description": "Renovate's nix manager refreshes a branch- or tag-tracking input only through a whole-lock `nix flake update` (per-input PRs need a rev pinned in flake.nix). The private site inputs are fetched through the git insteadOf rules in .github/workflows/renovate.yml.",
+    "schedule": ["on monday"],
+    "prBodyNotes": ["This is `nix flake update` of every input, the site repos included, so their Caddy configs ship with it. Before merging: `make test-server`. Merging deploys it: the nightly auto-upgrade builds main."]
   }
 }

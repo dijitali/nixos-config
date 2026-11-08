@@ -1,0 +1,65 @@
+# Renovate for this repo: its weekly lock update (`nix flake update` of every
+# input) and nixpkgs channel jumps; renovate.json says which and when.
+#
+# Runs with the job's GITHUB_TOKEN, so it can only open PRs here. Needs
+# Settings > Actions > General > "Allow GitHub Actions to create and approve
+# pull requests". GITHUB_TOKEN can't change workflow files, so renovate.json
+# leaves the github-actions manager off.
+#
+# The lock update has to fetch the five private site repos, which flake.nix
+# reaches over git+ssh://git@github-<repo>/... aliases. git rewrites each alias
+# to HTTPS with RENOVATE_SITES_TOKEN, a fine-grained token with Contents: read
+# on those repos only (customEnvVariables reach every command Renovate runs).
+# The lock keeps the SSH URLs. This repo is public, but nothing the run logs
+# or commits is private: the sites' names, commits and hashes are already in
+# flake.nix and flake.lock, and GitHub masks the token in logs. Keep the
+# triggers to schedule and workflow_dispatch: never a pull_request_target,
+# which would hand the secret to code from a fork.
+name: Renovate
+
+on:
+  schedule:
+    # Every six hours: scheduled runs often start hours late, and this keeps
+    # a run inside renovate.json's Monday window.
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: renovate
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: renovatebot/github-action@1c0cf989c02653fba0efe7ca5772338860ca71dc # v46.3.12
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: "false"
+          RENOVATE_REQUIRE_CONFIG: required
+          RENOVATE_BINARY_SOURCE: install
+          RENOVATE_CUSTOM_ENV_VARIABLES: >-
+            {
+            "GIT_CONFIG_COUNT": "5",
+            "GIT_CONFIG_KEY_0": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/ieuan-net.insteadOf",
+            "GIT_CONFIG_VALUE_0": "ssh://git@github-ieuan-net/dijitali/ieuan-net",
+            "GIT_CONFIG_KEY_1": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/ieuan-co-uk.insteadOf",
+            "GIT_CONFIG_VALUE_1": "ssh://git@github-ieuan-co-uk/dijitali/ieuan-co-uk",
+            "GIT_CONFIG_KEY_2": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/jensys-uk.insteadOf",
+            "GIT_CONFIG_VALUE_2": "ssh://git@github-jensys-uk/dijitali/jensys-uk",
+            "GIT_CONFIG_KEY_3": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/net-diagnostics.insteadOf",
+            "GIT_CONFIG_VALUE_3": "ssh://git@github-net-diagnostics/dijitali/net-diagnostics",
+            "GIT_CONFIG_KEY_4": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/jnkns-uk.insteadOf",
+            "GIT_CONFIG_VALUE_4": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
+            }
