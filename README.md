@@ -99,11 +99,14 @@ GitHub. Because inputs are pinned by `flake.lock`, upgrades only move when you
 run `make update` and push the new lock file.
 
 Renovate (`renovate.json`, run from vps-config's workflow) opens those bumps
-as PRs: one weekly "flake inputs" PR for the branch-tracking inputs, and one
-per release for the tag-pinned ones (disko, lanzaboote). Merging a PR is the
-deploy, since the nightly auto-upgrade builds `main`. The private site repos
-are left to `make update-sites`: they are fetched over SSH aliases Renovate
-doesn't have, which is also why it never does a whole-lock update.
+as one weekly lock maintenance PR: `nix flake update` of every input, the site
+repos included, so a site's Caddy change ships with it. Merging a PR is the
+deploy, since the nightly auto-upgrade builds `main`. Renovate reaches the
+private site repos through git `insteadOf` rules that map the `github-<repo>`
+SSH aliases to HTTPS with a read-only token; the lock keeps the SSH URLs. Its
+nix manager can't bump one input at a time unless `flake.nix` pins a `rev`, so
+tag-pinned inputs (disko, lanzaboote) still move only when you change the tag.
+`make update-sites` remains for shipping a site change before the weekly PR.
 
 If a broken change reaches `main` anyway, the server's auto-upgrade fails,
 the server stays on its current generation, and the failure is mailed (see
