@@ -30,10 +30,7 @@
   # IPv4 from DHCP; IPv6 from the Hetzner metadata service at boot, so the
   # primary IPs created in vps-config are never pinned here.
   server.hetznerMetadataIPv6 = true;
-  server.tailscaleTags = [
-    "tag:personal"
-    "tag:work"
-  ];
+  server.tailscaleTags = [ "tag:server" ];
 
   # Sites served by Caddy (modules/web/sites.nix): each is a flake input whose
   # `caddyConfig` output is its self-contained Caddy config.
