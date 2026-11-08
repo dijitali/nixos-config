@@ -29,7 +29,7 @@ in
     tailscaleTags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
-      example = [ "tag:personal" ];
+      example = [ "tag:server" ];
       description = "ACL tags to advertise when joining the tailnet.";
     };
   };
