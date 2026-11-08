@@ -8,6 +8,10 @@
   "github-actions": {
     "enabled": false
   },
+  "vulnerabilityAlerts": {
+    "enabled": false,
+    "description": "GITHUB_TOKEN can't read Dependabot alerts, and nothing here is in an ecosystem they cover. Not for repos with osvVulnerabilityAlerts: Renovate forces these settings onto OSV security updates, so this would disable those too."
+  },
   "lockFileMaintenance": {
     "enabled": true,
     "description": "Renovate's nix manager refreshes a branch- or tag-tracking input only through a whole-lock `nix flake update` (per-input PRs need a rev pinned in flake.nix). The private site inputs are fetched through the git insteadOf rules in .github/workflows/renovate.yml.",
