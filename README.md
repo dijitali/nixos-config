@@ -102,7 +102,12 @@ Renovate (`renovate.json`, run by `.github/workflows/renovate.yml`) opens
 those bumps as one weekly lock maintenance PR: `nix flake update` of every
 input, the site repos included, so whatever a site has merged (its own
 Renovate PRs, a Caddy change) ships with it. Merging a PR is the deploy, since
-the nightly auto-upgrade builds `main`. The workflow runs with its
+the nightly auto-upgrade builds `main`, and that PR merges itself: the
+workflow's second job runs the server VM test (`make test-server`, with KVM)
+and evaluates the laptop, then reports a `test-server` status that Renovate's
+automerge waits for. A failed test leaves the PR open; re-test it with *Run
+workflow* and "retest" ticked. Other Renovate PRs (a nixpkgs channel jump)
+stay manual. The workflow runs with its
 `GITHUB_TOKEN` and reaches the private site repos through git `insteadOf`
 rules that map the `github-<repo>` SSH aliases to HTTPS with the
 `RENOVATE_SITES_TOKEN` secret (Contents: read on the five site repos); the
