@@ -17,6 +17,12 @@
 # and hashes are already in flake.nix and flake.lock, and GitHub masks the
 # token in logs. Keep the triggers to schedule and workflow_dispatch: never a
 # pull_request_target, which would hand the secret to code from a fork.
+#
+# The second job tests Renovate's weekly lock update (the server's NixOS VM
+# test, plus an evaluation of the laptop) and reports it as a commit status,
+# which renovate.json's automerge waits for: Renovate merges the PR on a later
+# run once it is green, and the nightly auto-upgrade deploys it. It runs here
+# because GitHub starts no workflows for PRs opened with GITHUB_TOKEN.
 name: Renovate
 
 on:
@@ -25,6 +31,11 @@ on:
     # a run inside renovate.json's Monday window.
     - cron: "17 */6 * * *"
   workflow_dispatch:
+    inputs:
+      retest:
+        description: Test the open lock maintenance PR again, even if it already has a result
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -65,3 +76,94 @@ jobs:
             "GIT_CONFIG_KEY_4": "url.https://x-access-token:${{ secrets.RENOVATE_SITES_TOKEN }}@github.com/dijitali/jnkns-uk.insteadOf",
             "GIT_CONFIG_VALUE_4": "ssh://git@github-jnkns-uk/dijitali/jnkns-uk"
             }
+
+  test-lock-maintenance:
+    needs: renovate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CONTEXT: test-server
+    steps:
+      - name: Find an untested lock maintenance PR
+        id: pr
+        env:
+          RETEST: ${{ inputs.retest }}
+        run: |
+          sha=$(gh pr list -R "$GITHUB_REPOSITORY" --head renovate/lock-file-maintenance \
+            --state open --json headRefOid --jq '.[0].headRefOid // empty')
+          if [ -z "$sha" ]; then
+            echo "No open lock maintenance PR."
+            exit 0
+          fi
+          # Statuses come newest first. A result already reported for this
+          # commit stands, so a failure isn't retried until it passes; a run
+          # that died while pending is retried.
+          state=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/statuses" \
+            --jq "map(select(.context == \"$CONTEXT\"))[0].state // empty")
+          if [ "$RETEST" != true ] && { [ "$state" = success ] || [ "$state" = failure ]; }; then
+            echo "$sha already has $CONTEXT: $state."
+            exit 0
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Report pending
+        if: steps.pr.outputs.sha
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/${{ steps.pr.outputs.sha }}" \
+            -f state=pending -f context="$CONTEXT" -f description="Running the server VM test" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.pr.outputs.sha
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+          persist-credentials: false
+
+      - name: Free disk space
+        if: steps.pr.outputs.sha
+        # The test needs the server's closure plus two VMs; the runner image's
+        # SDKs take most of the disk.
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        if: steps.pr.outputs.sha
+        with:
+          # Also enables KVM, so the VMs run at native speed.
+          extra_nix_config: |
+            system-features = nixos-test benchmark big-parallel kvm
+
+      - name: Map the site repos' SSH aliases to HTTPS
+        if: steps.pr.outputs.sha
+        # Nix runs on the runner here, not in a container, so the runner's own
+        # git config reaches its fetches.
+        env:
+          TOKEN: ${{ secrets.RENOVATE_SITES_TOKEN }}
+        run: |
+          grep -oE 'git@github-[A-Za-z0-9._-]+/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+' flake.nix | sort -u |
+            while read -r alias; do
+              git config --global "url.https://x-access-token:$TOKEN@github.com/${alias#*/}.insteadOf" "ssh://$alias"
+            done
+
+      - name: Server VM test
+        if: steps.pr.outputs.sha
+        run: nix build --no-link -L .#checks.x86_64-linux.jenkosrv-fsn1-3
+
+      - name: Laptop evaluates
+        if: steps.pr.outputs.sha
+        # A full build is too big for a free runner; this catches option and
+        # evaluation errors before the laptop's own auto-upgrade does.
+        run: nix eval --raw .#nixosConfigurations.jenkonix-2.config.system.build.toplevel.drvPath
+
+      - name: Report result
+        if: always() && steps.pr.outputs.sha
+        env:
+          STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/${{ steps.pr.outputs.sha }}" \
+            -f state="$STATE" -f context="$CONTEXT" -f description="Server VM test and laptop evaluation: $STATE" \
+            -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
